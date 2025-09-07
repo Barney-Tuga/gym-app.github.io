@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#111827">
     <title>Gym PWA</title>
-    <!-- Ícone padrão para browsers -->
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <!-- Apple / Samsung fallback -->
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link rel="shortcut icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
+        /* Estilos anteriores mantidos */
         :root {
             --bg: #0b1220;
             --card: #121a2b;
@@ -129,6 +126,16 @@
         .btn-cancel { background: #f3f4f6; }
         .btn-save { background: #2e7d32; color: #fff; }
         .btn-danger { background: #fee2e2; color: #b00020; }
+        .modal-exercise-select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0,12);
+            background: rgba(255, 255, 255, 0,04);
+            color: black;
+            outline: none;
+            margin-bottom: 12px;
+        }
 
         /* Página EXERCÍCIO - Detalhes */
         .exercise-detail-header { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
@@ -794,6 +801,112 @@
             display: flex;
             gap: 8px;
         }
+
+        /* NOVOS ESTILOS PARA A MODAL DE GESTÃO DO DIA */
+        .day-management-modal-content {
+            max-width: 500px;
+            margin: 40px auto;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            position: relative;
+        }
+        
+        .day-management-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .day-management-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        .day-management-exercise-list {
+            margin: 16px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .day-management-exercise-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .day-management-exercise-info {
+            flex: 1;
+        }
+        
+        .day-management-exercise-name {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .day-management-exercise-details {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .day-management-exercise-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+        
+        .day-management-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* NOVO ESTILO PARA OS DIAS NA PÁGINA DE DETALHES DO PLANO */
+        .plan-day-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .plan-day-info {
+            flex: 1;
+        }
+        
+        .plan-day-name {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .plan-day-exercises-count {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .plan-day-options {
+            background: rgba(255,255,255,0.08);
+            color: #cfd7ff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -1011,7 +1124,36 @@
                 <h2 class="modal-title">Adicionar Peso</h2>
                 <div class="form-group"><label class="form-label">Peso (kg)</label><input id="weightInput" type="number" step="0.1" class="form-input"></div>
                 <div class="form-group"><label class="form-label">Data</label><input id="weightDate" type="date" class="form-input"></div>
-                <div classmodal-buttons"><button class="modal-btn btn-cancel" onclick="closeWeightModal()">Cancelar</button><button class="modal-btn btn-save" onclick="saveWeight()">Guardar</button></div>
+                <div classmodal-buttons><button class="modal-btn btn-cancel" onclick="closeWeightModal()">Cancelar</button><button class="modal-btn btn-save" onclick="saveWeight()">Guardar</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL ADICIONAR EXERCICIO AO DIA -->
+        <div id="addExerciseToDayModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Adicionar Exercício</h2>
+                <div class="form-group">
+                    <label class="form-label">Exercício</label>
+                    <select id="exerciseSelect" class="modal-exercise-select">
+                        <option value="">Selecione um exercício</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Séries</label>
+                    <input type="number" id="exerciseSets" class="form-input" min="1" placeholder="Ex: 3">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Repetições</label>
+                    <input type="number" id="exerciseReps" class="form-input" min="1" placeholder="Ex: 10">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Peso (kg)</label>
+                    <input type="number" id="exerciseWeight" class="form-input" step="0.5" min="0" placeholder="Opcional">
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeAddExerciseToDayModal()">Cancelar</button>
+                    <button class="modal-btn btn-save" onclick="saveExerciseToDay()">Salvar</button>
+                </div>
             </div>
         </div>
 
@@ -1163,6 +1305,25 @@
             </div>
         </div>
 
+        <!-- MODAL: Gestão do Dia (NOVA) -->
+        <div id="dayManagementModal" class="weight-modal">
+            <div class="day-management-modal-content">
+                <div class="day-management-header">
+                    <h2 class="day-management-title" id="dayManagementTitle">Gestão do Dia</h2>
+                    <button class="edit-exercise-button" onclick="openEditDayNameModal()"><i class="bi bi-pencil"></i></button>
+                </div>
+                
+                <div id="dayManagementExerciseList" class="day-management-exercise-list"></div>
+                
+                <button class="btn accent" style="width:100%; margin-bottom:16px;" onclick="openAddExerciseToDayModalFromManagement()">Adicionar Exercício</button>
+                
+                <div class="day-management-footer">
+                    <button class="modal-btn btn-danger" onclick="removeDayFromManagement()">Remover Dia</button>
+                    <button class="modal-btn btn-save" onclick="saveDayManagement()">Guardar</button>
+                </div>
+            </div>
+        </div>
+
         <div id="toast" class="toast">Guardado!</div>
     </div>
 
@@ -1200,6 +1361,9 @@
         // Variável para guardar o treino atualmente selecionado para detalhes
         let currentWorkoutDetail = null;
 
+        // Variável para controlar o dia sendo gerenciado
+        let currentDayManagementIndex = null;
+
         const storageKeys = { 
             WEIGHT: 'fitnessWeight', 
             SELECTED_PLAN: 'fitnessSelectedPlan', 
@@ -1208,7 +1372,7 @@
             PLANS: 'fitnessPlans',
             WORKOUTS: 'fitnessWorkouts',
             EXERCISE_MEDIA: 'fitnessExerciseMedia',
-            AVAILABLE_EXERCISES: 'fitnessAvailableExercises' // Nova chave para exercícios disponíveis
+            AVAILABLE_EXERCISES: 'fitnessAvailableExercises'
         };
 
         // Exercícios disponíveis (agora carregados do localStorage)
@@ -1392,14 +1556,18 @@
         }
         
         // MODAL: Adicionar exercício (substitui o prompt)
-        function openAddExerciseModal() {
-            document.getElementById('addExerciseModal').style.display = 'block';
-            document.getElementById('newExerciseName').value = '';
-            document.getElementById('newExerciseMuscle').value = 'Peito';
+        function openAddExerciseModal(dayIndex){
+            currentDayForExercise = dayIndex;
+            const sel = document.getElementById('exerciseSelect');
+            sel.innerHTML = '<option value="">Selecione um exercício</option>' + availableExercises.map(e=>`<option value="${e.name}">${e.name}</option>`).join('');
+            document.getElementById('exerciseSets').value = '';
+            document.getElementById('exerciseReps').value = '';
+            document.getElementById('exerciseWeight').value = '';
+            document.getElementById('addExerciseModal').style.display='block';
         }
         
-        function closeAddExerciseModal() {
-            document.getElementById('addExerciseModal').style.display = 'none';
+        function closeAddExerciseModal(){
+            document.getElementById('addExerciseModal').style.display='none';
         }
         
         function saveNewExercise() {
@@ -1413,7 +1581,7 @@
             
             // Verificar se já existe
             if (availableExercises.some(e => e.name.toLowerCase() === name.toLowerCase())) {
-                alert('Já existe um exercício com esse nome.');
+                alert('Já existe a exercício com esse nome.');
                 return;
             }
             
@@ -1734,6 +1902,7 @@
         
         function saveDay(){ const n=document.getElementById('dayNameInput').value.trim(); if(!n){alert('Insira um nome.');return;} if(!currentPlanDetail.days) currentPlanDetail.days=[]; currentPlanDetail.days.push({ name:n, exercises:[] }); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeAddDayModal(); showToast('Dia adicionado.'); }
 
+        // MODAL: Adicionar exercício ao dia (FUNÇÕES CORRIGIDAS)
         function openAddExerciseToDayModal(dayIndex){
             currentDayForExercise = dayIndex;
             const sel = document.getElementById('exerciseSelect');
@@ -1917,39 +2086,138 @@
             renderExercises();
         }
 
-        function renderPlanDaysDetail(days){
+        // ===== NOVAS FUNÇÕES PARA A GESTÃO DO DIA =====
+        function renderPlanDaysDetail(days) {
             const daysContainer = document.getElementById('planDaysDetail');
-            if(!days || !days.length){ daysContainer.innerHTML = `<div class="card" style="text-align:center;">Nenhum dia adicionado</div>`; return; }
-            let html='';
-            days.forEach((day, dIndex)=>{
-                let exercisesHTML = '';
-                if(!day.exercises || !day.exercises.length){ exercisesHTML = `<div class=\"day-empty\">Sem exercícios ainda</div>`; }
-                else {
-                    day.exercises.forEach((ex, eIndex)=>{
-                        exercisesHTML += `
-                        <div class=\"exercise-row\">
-                            <div class=\"exercise-row-main\">
-                                <div class=\"exercise-row-name\">${ex.name}</div>
-                                <div class=\"exercise-row-meta\">${ex.sets} séries × ${ex.reps} reps ${ex.weight ? ('@ '+ex.weight+' kg') : ''}</div>
-                            </div>
-                            <button class=\"exercise-row-options\" onclick=\"openEditExerciseModal(${dIndex},${eIndex})\"><i class=\"bi bi-three-dots-vertical\"></i></button>
-                        </div>`;
-                    });
-                }
+            if (!days || !days.length) {
+                daysContainer.innerHTML = `<div class="card" style="text-align:center;">Nenhum dia adicionado</div>`;
+                return;
+            }
+            
+            let html = '';
+            days.forEach((day, dIndex) => {
                 html += `
-                <div class=\"card\">
-                    <div class=\"exercise-detail-header\">
-                        <h3 class=\"exercise-detail-title\" style=\"margin:0;\">${day.name}</h3>
-                        <div></div>
-                        <button class=\"kebab\" onclick=\"openDayOptionsModal(${dIndex})\"><i class=\"bi bi-three-dots-vertical\"></i></button>
+                <div class="plan-day-item">
+                    <div class="plan-day-info">
+                        <div class="plan-day-name">${day.name}</div>
+                        <div class="plan-day-exercises-count">${day.exercises ? day.exercises.length : 0} exercícios</div>
                     </div>
-                    <div class=\"plan-day-exercises-list\">${exercisesHTML}</div>
-                    <button class=\"add-exercise-inline\" onclick=\"openAddExerciseToDayModal(${dIndex})\"><i class=\"bi bi-plus-circle\"></i> Adicionar Exercício</button>
+                    <button class="plan-day-options" onclick="openDayManagementModal(${dIndex})">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
                 </div>`;
             });
             daysContainer.innerHTML = html;
         }
-
+        
+        function openDayManagementModal(dayIndex) {
+            currentDayManagementIndex = dayIndex;
+            const day = currentPlanDetail.days[dayIndex];
+            
+            // Preencher o título da modal
+            document.getElementById('dayManagementTitle').textContent = day.name;
+            
+            // Preencher a lista de exercícios
+            renderDayManagementExercises(day.exercises);
+            
+            // Mostrar a modal
+            document.getElementById('dayManagementModal').style.display = 'block';
+        }
+        
+        function closeDayManagementModal() {
+            document.getElementById('dayManagementModal').style.display = 'none';
+        }
+        
+        function renderDayManagementExercises(exercises) {
+            const container = document.getElementById('dayManagementExerciseList');
+            container.innerHTML = '';
+            
+            if (!exercises || !exercises.length) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.7;">Nenhum exercício adicionado</div>';
+                return;
+            }
+            
+            exercises.forEach((exercise, index) => {
+                const exerciseEl = document.createElement('div');
+                exerciseEl.className = 'day-management-exercise-item';
+                exerciseEl.innerHTML = `
+                    <div class="day-management-exercise-info">
+                        <div class="day-management-exercise-name">${exercise.name}</div>
+                        <div class="day-management-exercise-details">${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
+                    </div>
+                    <button class="day-management-exercise-remove" onclick="removeExerciseFromDayManagement(${index})">
+                        <i class="bi bi-x"></i>
+                    </button>
+                `;
+                container.appendChild(exerciseEl);
+            });
+        }
+        
+        function openAddExerciseToDayModalFromManagement() {
+            // Fechar a modal de gestão primeiro
+            closeDayManagementModal();
+            // Abrir a modal de adicionar exercício
+            openAddExerciseToDayModal(currentDayManagementIndex);
+        }
+        
+        function removeExerciseFromDayManagement(exerciseIndex) {
+            if (currentDayManagementIndex === null) return;
+            
+            // Remover o exercício do dia
+            currentPlanDetail.days[currentDayManagementIndex].exercises.splice(exerciseIndex, 1);
+            
+            // Re-renderizar a lista de exercícios
+            renderDayManagementExercises(currentPlanDetail.days[currentDayManagementIndex].exercises);
+        }
+        
+        function saveDayManagement() {
+            // Fechar a modal
+            closeDayManagementModal();
+            
+            // Atualizar os dados no localStorage
+            const plans = loadPlansData();
+            const i = plans.findIndex(p => p.id === currentPlanDetail.id);
+            if (i !== -1) {
+                plans[i] = currentPlanDetail;
+                savePlansData(plans);
+            }
+            
+            // Re-renderizar os dias do plano
+            renderPlanDaysDetail(currentPlanDetail.days);
+            showToast('Alterações guardadas!');
+        }
+        
+        function removeDayFromManagement() {
+            if (currentDayManagementIndex === null) return;
+            
+            if (!confirm('Tem a certeza que deseja remover este dia?')) return;
+            
+            // Remover o dia
+            currentPlanDetail.days.splice(currentDayManagementIndex, 1);
+            
+            // Fechar a modal
+            closeDayManagementModal();
+            
+            // Atualizar os dados no localStorage
+            const plans = loadPlansData();
+            const i = plans.findIndex(p => p.id === currentPlanDetail.id);
+            if (i !== -1) {
+                plans[i] = currentPlanDetail;
+                savePlansData(plans);
+            }
+            
+            // Re-renderizar os dias do plano
+            renderPlanDaysDetail(currentPlanDetail.days);
+            showToast('Dia removido!');
+        }
+        
+        function openEditDayNameModal() {
+            // Preencher o input com o nome atual
+            document.getElementById('dayEditNameInput').value = currentPlanDetail.days[currentDayManagementIndex].name;
+            // Mostrar a modal de edição de nome
+            document.getElementById('dayOptionsModal').style.display = 'block';
+        }
+        
         // ===== Funções para a Página de Detalhes do Dia - ATUALIZADA conforme a imagem =====
         function openDayDetail(planId, dayIndex) {
             const plans = loadPlansData();
@@ -2689,6 +2957,4 @@
         }
     </script>
 </body>
-
 </html>
-
