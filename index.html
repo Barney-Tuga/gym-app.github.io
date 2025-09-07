@@ -1,0 +1,2683 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#111827">
+    <title>Gym PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="shortcut icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --bg: #0b1220;
+            --card: #121a2b;
+            --muted: rgba(255,255,255,0.6);
+            --text: #fff;
+            --primary: #2e7d32;
+            --accent: #4f46e5;
+            --danger: #dc3545;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            background: linear-gradient(180deg, #0b1220 0%, #0d1626 100%);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container { padding: 16px 16px 96px; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; position: sticky; top: 0; z-index: 10;
+            background: rgba(11,18,32,0.7); backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .header h1 { margin: 0; font-size: 1.25rem; letter-spacing: 0.3px; }
+        .header .actions { display: flex; gap: 8px; }
+        .icon-btn { border: 0; background: #18233a; color: #cfd7ff; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .card {
+            background: radial-gradient(120% 120% at 100% 0%, rgba(79,70,229,0.08) 0%, rgba(255,255,255,0) 60%),
+                       linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        }
+        .card h3 { margin: 0 0 8px 0; font-size: 0.95rem; opacity: 0.8; }
+        .card .big { font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px; }
+
+        /* Pesquisas/inputs */
+        .search {
+            display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 10px 0 16px;
+        }
+        .input {
+            width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04); color: var(--text); outline: none;
+        }
+        .btn { border: 0; padding: 10px 12px; border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; }
+        .btn.primary { background: var(--primary); }
+        .btn.accent  { background: var(--accent); }
+        .btn.ghost { background: rgba(255,255,255,0.08); }
+        .btn.danger { background: var(--danger); }
+
+        /* Listas */
+        .list { display: grid; gap: 10px; }
+        .list-item {
+            display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+            padding: 12px; background: #111b30; border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+        }
+        .list-item .title { font-weight: 800; }
+        .list-item .subtitle { font-size: 0.9rem; opacity: 0.7; }
+        .kebab { border: 0; background: rgba(255,255,255,0.08); color: #cfd7ff; padding: 6px 8px; border-radius: 10px; cursor: pointer; }
+
+        /* Navbar */
+        .navbar {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+            display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; align-items: end;
+            background: rgba(11,18,32,0.86); backdrop-filter: blur(10px);
+            padding: 6px 10px 12px; border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .nav-item { text-align: center; font-size: 0.7rem; opacity: 0.8; }
+        .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+        .nav-item.active { opacity: 1; color: #fff; }
+
+        /* TOAST */
+        .toast { 
+            position: fixed; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            bottom: 78px; 
+            background: #1f2937; 
+            color: #fff; 
+            padding: 10px 14px; 
+            border-radius: 10px;
+            opacity: 0; 
+            transition: opacity .25s ease, transform .3s ease; 
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .toast.show { 
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+        /* MODAIS */
+        .weight-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.55); z-index: 2000; overflow-y: auto; }
+        .weight-modal-content { max-width: 420px; margin: 40px auto; background: #fff; color: #111; border-radius: 18px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); position: relative; }
+        .modal-title { margin: 0 0 12px; font-size: 1.3rem; font-weight: 800; text-align: center; }
+        .form-group { margin: 10px 0; }
+        .form-label { font-weight: 700; font-size: 0.9rem; color: #111; margin-bottom: 6px; display: block; }
+        .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px; }
+        .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .modal-btn { padding: 10px 12px; border: 0; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        .btn-cancel { background: #f3f4f6; }
+        .btn-save { background: #2e7d32; color: #fff; }
+        .btn-danger { background: #fee2e2; color: #b00020; }
+
+        /* Página EXERCÍCIO - Detalhes */
+        .exercise-detail-header { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+        .back-button { border: none; background: #18233a; color: #cfd7ff; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+        .exercise-detail-title { margin: 0; }
+        .edit-exercise-button { border: none; background: #f5f5f5; border-radius: 12px; padding: 8px 12px; font-size: 1.1rem; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .edit-exercise-button i { pointer-events: none; }
+        .exercise-media-card { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0 10px; }
+        .media-box { position: relative; border: 2px dashed #e0e0e0; border-radius: 16px; height: 160px; display: flex; align-items: center; justify-content: center; background: #fafafa; }
+        .media-label { font-weight: 600; opacity: 0.7; }
+        .media-menu { position: absolute; top: 8px; right: 8px; border: none; background: white; border-radius: 12px; padding: 6px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); cursor: pointer; }
+
+        .plan-day-exercises-list { margin-top: 8px; }
+        .exercise-row { display: flex; align-items: center; justify-content: space-between; background: #fff; color:#111; border-radius: 14px; padding: 10px 12px; margin: 8px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .exercise-row-main { display: flex; flex-direction: column; gap: 2px; }
+        .exercise-row-name { font-weight: 800; }
+        .exercise-row-meta { font-size: 0.9rem; opacity: 0.7; }
+        .exercise-row-options { border: none; background: #f3f3f3; border-radius: 12px; padding: 6px 8px; cursor: pointer; }
+        .add-exercise-inline { width: 100%; border: none; border-radius: 14px; padding: 10px 12px; background: #f7f7f7; color:#111; margin-top: 8px; cursor: pointer; }
+
+        .plan-detail-footer { display: grid; gap: 12px; margin-top: 12px; position: static; bottom: 92px; }
+        .btn-remove-plan { flex: 1; background: #ffe7e7; color: #b00020; border: none; padding: 12px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+        .btn-save-plan { flex: 2; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+
+        /* Garante que modais personalizados não aparecem no fim das páginas */
+        .plan-modal { display: none; }
+
+        #weightCard {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #weightCard button {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        
+        /* Estilo para a lista de pesos */
+        #weightList {
+            margin-top: 20px;
+            display: grid;
+            gap: 10px;
+        }
+        #weightList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+        .delete-weight-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* estilo simples para os day-cards - MODIFICADO para usar a cor original */
+        .day-card {
+            padding: 14px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            background: var(--card);
+            position: relative;
+            cursor: default;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .day-card h5 { margin: 0 0 6px 0; font-weight: 700; color: var(--text); }
+        .day-card small { color: var(--muted); }
+
+        /* Quadrado do dia - NOVO */
+        .day-number-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .day-number-box div:first-child {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+        .day-number-box div:last-child {
+            font-size: 1.2rem;
+        }
+
+        /* Estilo para a lista de seleção de planos */
+        .plan-selection-item {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            color: white;
+        }
+        .plan-selection-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .plan-selection-item:last-child {
+            border-bottom: none;
+        }
+        .plan-selection-item .title {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plan-selection-item .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Espaçamento na página de peso */
+        #weightPage .card {
+            margin-bottom: 16px;
+        }
+
+        /* Página de detalhes do dia - REDESENHADA conforme a imagem */
+        .day-detail-exercise {
+            background: var(--card);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .day-detail-exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .day-detail-exercise-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .day-detail-exercise-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .day-detail-exercise-sets {
+            font-weight: 600;
+        }
+        .day-detail-exercise-weight {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .start-workout-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Página de treinos (histórico) - MODIFICADO conforme solicitado */
+        .workout-item-compact {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+        }
+        .workout-header-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .workout-title-compact {
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 0;
+        }
+        .workout-date-compact {
+            opacity: 0.7;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+        .workout-details-compact {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+        .workout-day-compact {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .workout-duration-compact {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-align: right;
+        }
+
+        .workout-exercise {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .workout-exercise:last-child {
+            border-bottom: none;
+        }
+
+        /* Modal para alterar mídia */
+        .media-options {
+            position: absolute;
+            top: 35px;
+            right: 5px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            display: none;
+        }
+        .media-option {
+            padding: 10px 14px;
+            cursor: pointer;
+            color: #111;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .media-option:last-child {
+            border-bottom: none;
+        }
+        .media-option:hover {
+            background: #f5f5f5;
+        }
+
+        /* NOVAS PÁGINAS PARA O FLUXO DE TREINO */
+        /* Página de exercícios do treino */
+        .workout-exercise-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .workout-exercise-info {
+            flex: 1;
+        }
+        .workout-exercise-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0 0 4px 0;
+        }
+        .workout-exercise-details {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        .workout-exercise-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .workout-exercise-btn:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
+        }
+        .finish-workout-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Página de execução do exercício */
+        .exercise-execution-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .exercise-execution-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+        .exercise-info-btn {
+            border: none;
+            background: var(--accent);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .series-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .series-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .series-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .series-number {
+            font-weight: 700;
+        }
+        .series-target {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        .series-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+        .series-input {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            outline: none;
+        }
+        .timer-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+        .timer-active {
+            background: var(--accent);
+        }
+        .finish-exercise-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .finish-exercise-btn:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
+        }
+
+        /* Página de resumo do treino */
+        .workout-summary-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .summary-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .summary-duration {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        .summary-exercise {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .summary-exercise:last-child {
+            border-bottom: none;
+        }
+
+        /* Modal de detalhes do treino */
+        .workout-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            overflow-y: auto;
+        }
+        .workout-detail-content {
+            max-width: 500px;
+            margin: 40px auto;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .workout-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .workout-detail-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        .workout-detail-close {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .workout-detail-info {
+            margin-bottom: 16px;
+        }
+        .workout-detail-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .workout-detail-info-label {
+            font-weight: 600;
+            opacity: 0.8;
+        }
+        .workout-detail-info-value {
+            text-align: right;
+        }
+        .workout-detail-exercises {
+            margin-top: 16px;
+        }
+        .workout-detail-exercise {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .workout-detail-exercise-name {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .workout-detail-exercise-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .workout-detail-exercise-sets {
+            opacity: 0.8;
+        }
+
+        /* ===== ESTILOS ADICIONADOS PARA AS CORREÇÕES ===== */
+        
+        /* Espaçamento na página de treinos */
+        #workoutsPage .card {
+            margin-bottom: 16px; /* Adiciona espaçamento entre o card e a lista */
+        }
+        
+        /* Estilo para a lista de histórico de treinos na página de exercícios */
+        .exercise-history-list {
+            margin-top: 16px;
+            display: grid;
+            gap: 12px;
+        }
+        
+        .exercise-history-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .exercise-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        
+        .exercise-history-date {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .exercise-history-avg {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .exercise-history-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+        
+        .exercise-history-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .exercise-history-detail-label {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+        
+        .exercise-history-detail-value {
+            font-weight: 600;
+        }
+        
+        .exercise-history-sets {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            display: none;
+        }
+        
+        .exercise-history-sets.expanded {
+            display: block;
+        }
+        
+        .exercise-history-set {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .exercise-history-set:last-child {
+            border-bottom: none;
+        }
+        
+        /* Botão de eliminar treino no modal */
+        .delete-workout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        /* NOVOS ESTILOS PARA AS CORREÇÕES SOLICITADAS */
+        
+        /* Modal para adicionar exercício */
+        .add-exercise-modal-content {
+            max-width: 420px;
+            margin: 40px auto;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            position: relative;
+        }
+        
+        /* Modal para editar nome do exercício */
+        .edit-exercise-name-modal-content {
+            max-width: 420px;
+            margin: 40px auto;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            position: relative;
+        }
+        
+        /* Modal para confirmar remoção de exercício */
+        .confirm-delete-modal-content {
+            max-width: 420px;
+            margin: 40px auto;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            position: relative;
+            text-align: center;
+        }
+        
+        /* Botão de remover exercício na página de detalhes */
+        .delete-exercise-button {
+            border: none;
+            background: #ffebee;
+            color: #d32f2f;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-left: 8px;
+        }
+        
+        .exercise-detail-header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>GYM</h1>
+        <div class="actions">
+            <button class="icon-btn" onclick="showPage('mainPage')"><i class="bi bi-house"></i></button>
+            <button class="icon-btn" onclick="showPage('exercisesPage')"><i class="bi bi-activity"></i></button>
+            <button class="icon-btn" onclick="showPage('plansPage')"><i class="bi bi-calendar-week"></i></button>
+            <button class="icon-btn" onclick="showPage('workoutsPage')"><i class="bi bi-clock-history"></i></button>
+            <button class="icon-btn" onclick="showPage('weightPage')"><i class="bi bi-speedometer2"></i></button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- HOME -->
+        <div id="mainPage" class="page active">
+            <div class="stats-grid">
+                <div class="card">
+                    <h3>Peso Atual</h3>
+                    <div class="big" id="currentWeightLabel">0 kg</div>
+                    <div class="big">
+                        <button class="btn ghost" onclick="openWeightModal()"><i class="bi bi-plus-circle"></i> Adicionar Peso</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Plano Selecionado</h3>
+                    <div class="big" id="selectedPlanLabel">—</div>
+                    <div class="big">
+                        <button class="btn accent" onclick="openPlanSelection()"><i class="bi bi-list-check"></i> Escolher Plano</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="selectedPlanDays" style="margin-top:16px;"></div>
+
+        </div>
+
+        <!-- EXERCÍCIOS -->
+        <div id="exercisesPage" class="page">
+            <div class="search">
+                <input id="exerciseSearch" class="input" placeholder="Procurar exercício..." oninput="renderExercises()" />
+                <button class="btn accent" onclick="openAddExerciseModal()"><i class="bi bi-plus-circle"></i></button>
+            </div>
+            <div id="exercisesList" class="list">
+                <!-- Mensagem será mostrada aqui via JavaScript -->
+            </div>
+        </div>
+
+        <!-- DETALHES DO EXERCÍCIO -->
+        <div id="exerciseDetailPage" class="page">
+            <div class="exercise-detail-header">
+                <button class="back-button" onclick="closeExerciseDetail()"><i class="bi bi-arrow-left"></i></button>
+                <h1 class="exercise-detail-title" id="exerciseDetailTitle">Nome do Exercício</h1>
+                <div class="exercise-detail-header-buttons">
+                    <button class="edit-exercise-button" onclick="openEditExerciseNameModal()"><i class="bi bi-pencil"></i></button>
+                    <button class="delete-exercise-button" onclick="openDeleteExerciseModal()"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="exercise-media-card">
+                <div class="media-box" id="exerciseImageBox">
+                    <span class="media-label">Imagem</span>
+                    <button class="media-menu" onclick="openMediaMenu('image', event)"><i class="bi bi-three-dots-vertical"></i></button>
+                    <div class="media-options" id="imageOptions">
+                        <div class="media-option" onclick="changeExerciseMedia('image')">Alterar Imagem</div>
+                        <div class="media-option" onclick="removeExerciseMedia('image')">Remover Imagem</div>
+                    </div>
+                </div>
+                <div class="media-box" id="exerciseGifBox">
+                    <span class="media-label">GIF</span>
+                    <button class="media-menu" onclick="openMediaMenu('gif', event)"><i class="bi bi-three-dots-vertical"></i></button>
+                    <div class="media-options" id="gifOptions">
+                        <div class="media-option" onclick="changeExerciseMedia('gif')">Alterar GIF</div>
+                        <div class="media-option" onclick="removeExerciseMedia('gif')">Remover GIF</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Notas</h3>
+                <textarea id="exerciseNotes" class="input" rows="4" placeholder="Notas sobre execução, dicas, etc."></textarea>
+                <div style="text-align:right; margin-top:8px;"><button class="btn primary" onclick="saveExerciseNotes()">Guardar Notas</button></div>
+            </div>
+
+            <div class="card" style="margin-top:14px;">
+                <h3>Histórico</h3>
+                <canvas id="exerciseChart" height="180"></canvas>
+            </div>
+            
+            <!-- Lista de histórico de treinos adicionada -->
+            <div class="card" style="margin-top:14px;">
+                <h3>Detalhes dos Treinos</h3>
+                <div id="exerciseHistoryList" class="exercise-history-list"></div>
+            </div>
+        </div>
+
+        <!-- PLANOS -->
+        <div id="plansPage" class="page">
+            <div style="display:flex; justify-content:end; margin-bottom: 10px;">
+                <button class="btn primary" onclick="openPlanModal()"><i class="bi bi-plus-circle"></i> Adicionar Plano de Treino</button>
+            </div>
+            <div id="plansList" class="list"></div>
+        </div>
+
+        <!-- DETALHE DO PLANO -->
+        <div id="planDetailPage" class="page">
+            <div class="exercise-detail-header" style="margin-bottom:8px;">
+                <button class="back-button" onclick="closePlanDetail()"><i class="bi bi-arrow-left"></i></button>
+                <h1 class="exercise-detail-title" id="planDetailTitle">Plano</h1>
+                <button class="edit-exercise-button" onclick="openEditPlanNameModal()"><i class="bi bi-pencil"></i></button>
+            </div>
+
+            <div class="card" style="margin-bottom:10px;">
+                <div style="display:flex; gap:8px;">
+                    <button class="btn accent" onclick="openAddDayModal()"><i class="bi bi-plus-circle"></i> Adicionar Dia</button>
+                </div>
+            </div>
+
+            <div id="planDaysDetail" class="list"></div>
+            <div class="plan-detail-footer">
+                <button class="btn-remove-plan" onclick="removePlan()">Remover</button>
+                <button class="btn-save-plan" onclick="savePlanChanges()">Guardar</button>
+            </div>
+        </div>
+
+        <!-- DETALHES DO DIA - REDESENHADO conforme a imagem -->
+        <div id="dayDetailPage" class="page">
+            <div class="exercise-detail-header" style="margin-bottom:16px;">
+                <button class="back-button" onclick="closeDayDetail()"><i class="bi bi-arrow-left"></i></button>
+                <h1 class="exercise-detail-title" id="dayDetailTitle">Dia do Treino</h1>
+            </div>
+
+            <div id="dayExercisesList"></div>
+
+            <button class="start-workout-btn" onclick="startWorkout()">Iniciar Treino</button>
+        </div>
+
+        <!-- Weight Page -->
+        <div id="weightPage" class="page">
+            <div class="card" id="weightCard">
+                <div>
+                    <h3>Peso Atual:</h3>
+                    <div class="big" id="currentWeightPageLabel">0 kg</div>
+                </div>
+                <button class="btn ghost" onclick="openWeightModal()"><i class="bi bi-plus-circle"></i> Adicionar Peso</button>
+            </div>
+            <div class="card">
+                <canvas id="weightChart" height="200"></canvas>
+            </div>
+            <ul id="weightList" class="weight-list"></ul>
+        </div>
+
+        <!-- Página de Treinos (Histórico) -->
+        <div id="workoutsPage" class="page">
+            <div class="card">
+                <h3>Histórico de Treinos</h3>
+                <p>Aqui podes ver todos os teus treinos realizados.</p>
+            </div>
+
+            <div id="workoutsList" class="list"></div>
+        </div>
+
+        <!-- NOVAS PÁGINAS PARA O FLUXO DE TREINO -->
+        <!-- Página de exercícios do treino -->
+        <div id="workoutPage" class="page">
+            <div class="exercise-detail-header" style="margin-bottom:16px;">
+                <button class="back-button" onclick="closeWorkoutPage()"><i class="bi bi-arrow-left"></i></button>
+                <h1 class="exercise-detail-title" id="workoutTitle">Treino</h1>
+            </div>
+
+            <div id="workoutExercisesList"></div>
+
+            <button id="finishWorkoutBtn" class="finish-workout-btn" style="display:none;" onclick="finishWorkout()">Terminar Treino</button>
+        </div>
+
+        <!-- Página de execução do exercício -->
+        <div id="exerciseWorkoutPage" class="page">
+            <div class="exercise-execution-header">
+                <button class="back-button" onclick="closeExerciseWorkout()"><i class="bi bi-arrow-left"></i></button>
+                <h1 class="exercise-execution-title" id="exerciseWorkoutTitle">Exercício</h1>
+                <button class="exercise-info-btn" onclick="showExerciseInfo()"><i class="bi bi-info-circle"></i></button>
+            </div>
+
+            <div class="card">
+                <h3 id="exerciseWorkoutTarget"></h3>
+                <div id="seriesGrid" class="series-grid"></div>
+                <button id="timerBtn" class="timer-btn" onclick="startTimer()">Iniciar Temporizador (2min)</button>
+            </div>
+
+            <button id="finishExerciseBtn" class="finish-exercise-btn" onclick="finishExercise()">Terminar Exercício</button>
+        </div>
+
+        <!-- Página de resumo do treino -->
+        <div id="workoutSummaryPage" class="page">
+            <div class="exercise-detail-header" style="margin-bottom:16px;">
+                <button class="back-button" onclick="closeWorkoutSummary()"><i class="bi bi-arrow-left"></i></button>
+                <h1 class="exercise-detail-title">Resumo do Treino</h1>
+            </div>
+
+            <div class="workout-summary-item">
+                <div class="summary-header">
+                    <h2 class="summary-title" id="summaryPlanName"></h2>
+                    <div class="summary-duration" id="summaryDuration"></div>
+                </div>
+                <div id="summaryExercisesList"></div>
+            </div>
+
+            <button class="start-workout-btn" onclick="closeWorkoutSummary()">Voltar ao Início</button>
+        </div>
+
+        <!-- MODAL PESO -->
+        <div id="weightModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Adicionar Peso</h2>
+                <div class="form-group"><label class="form-label">Peso (kg)</label><input id="weightInput" type="number" step="0.1" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Data</label><input id="weightDate" type="date" class="form-input"></div>
+                <div classmodal-buttons"><button class="modal-btn btn-cancel" onclick="closeWeightModal()">Cancelar</button><button class="modal-btn btn-save" onclick="saveWeight()">Guardar</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL SELEÇÃO DE PLANO -->
+        <div id="planSelectionModal" class="weight-modal">
+            <div class="weight-modal-content" style="color: white; background: var(--card);">
+                <h2 class="modal-title">Escolher Plano</h2>
+                <div id="planSelectionList" class="list"></div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closePlanSelection()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+        
+
+        <!-- MODAL CRIAR PLANO -->
+        <div id="planModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title" id="modalPlanTitle">Criar Plano de Treino</h2>
+                <div class="form-group"><label class="form-label">Nome do Plano</label><input id="planNameInput" class="form-input" placeholder="Ex: Push/Pull/Legs"></div>
+                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closePlanModal()">Cancelar</button><button class="modal-btn btn-save" onclick="savePlan()">Salvar Plano</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL ADICIONAR DIA -->
+        <div id="addDayModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Adicionar Dia</h2>
+                <div class="form-group"><label class="form-label">Nome do Dia</label><input id="dayNameInput" class="form-input" placeholder="Ex: Segunda-feira - Peito"></div>
+                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closeAddDayModal()">Cancelar</button><button class="modal-btn btn-save" onclick="saveDay()">Salvar</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL EDITAR NOME DO PLANO -->
+        <div id="editPlanNameModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Editar Nome do Plano</h2>
+                <div class="form-group"><label class="form-label">Nome do Plano</label><input type="text" class="form-input" id="editPlanNameInput" placeholder="Ex: Plano de Força"></div>
+                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closeEditPlanNameModal()">Cancelar</button><button class="modal-btn btn-save" onclick="savePlanName()">Salvar</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL: Opções do Dia (renomear/apagar) -->
+        <div id="dayOptionsModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Gestão do Dia</h2>
+                <div class="form-group"><label class="form-label">Nome do Dia</label><input type="text" class="form-input" id="dayEditNameInput" placeholder="Ex: Segunda - Peito"></div>
+                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closeDayOptionsModal()">Cancelar</button><button class="modal-btn btn-danger" onclick="removeDay()">Remover Dia</button><button class="modal-btn btn-save" onclick="saveDayName()">Guardar</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL: Editar Exercício do Dia -->
+        <div id="editExerciseModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Editar Exercício</h2>
+                <div class="form-group"><label class="form-label">Nome do Exercício</label><input type="text" class="form-input" id="editExerciseNameInput" placeholder="Ex: Supino Reto"></div>
+                <div class="form-group"><label class="form-label">Séries</label><input type="number" class="form-input" id="editExerciseSets" min="1"></div>
+                <div class="form-group"><label class="form-label">Repetições</label><input type="number" class="form-input" id="editExerciseReps" min="1"></div>
+                <div class="form-group"><label class="form-label">Peso (kg)</label><input type="number" class="form-input" id="editExerciseWeight" step="0.5" min="0"></div>
+                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closeEditExerciseModal()">Cancelar</button><button class="modal-btn btn-danger" onclick="removeExerciseFromDay()">Remover Exercício</button><button class="modal-btn btn-save" onclick="saveEditedExercise()">Guardar</button></div>
+            </div>
+        </div>
+
+        <!-- MODAL: Informações do Exercício -->
+        <div id="exerciseInfoModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title" id="exerciseInfoTitle">Informações do Exercício</h2>
+                <div id="exerciseInfoContent" style="max-height: 300px; overflow-y: auto;"></div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeExerciseInfo()">Fechar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Detalhes do Treino -->
+        <div id="workoutDetailModal" class="workout-detail-modal">
+            <div class="workout-detail-content">
+                <div class="workout-detail-header">
+                    <h2 class="workout-detail-title">Detalhes do Treino</h2>
+                    <button class="workout-detail-close" onclick="closeWorkoutDetailModal()">&times;</button>
+                </div>
+                <div id="workoutDetailInfo" class="workout-detail-info"></div>
+                <div id="workoutDetailExercises" class="workout-detail-exercises"></div>
+                <!-- Botão para eliminar treino no modal -->
+                <button class="delete-workout-btn" onclick="deleteWorkout()">Eliminar Treino</button>
+            </div>
+        </div>
+
+        <!-- MODAL: Alterar Mídia -->
+        <input type="file" id="mediaInput" accept="image/*" style="display: none;">
+
+        <!-- NOVOS MODAIS ADICIONADOS PARA AS CORREÇÕES -->
+        
+        <!-- MODAL: Adicionar Exercício (substitui o prompt) -->
+        <div id="addExerciseModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Adicionar Exercício</h2>
+                <div class="form-group">
+                    <label class="form-label">Nome do Exercício</label>
+                    <input type="text" class="form-input" id="newExerciseName" placeholder="Ex: Supino Reto">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Grupo Muscular</label>
+                    <select class="form-select" id="newExerciseMuscle">
+                        <option value="Peito">Peito</option>
+                        <option value="Costas">Costas</option>
+                        <option value="Pernas">Pernas</option>
+                        <option value="Ombros">Ombros</option>
+                        <option value="Braços">Braços</option>
+                        <option value="Abdômen">Abdômen</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeAddExerciseModal()">Cancelar</button>
+                    <button class="modal-btn btn-save" onclick="saveNewExercise()">Salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Editar Nome do Exercício (substitui o prompt) -->
+        <div id="editExerciseNameModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Editar Nome do Exercício</h2>
+                <div class="form-group">
+                    <label class="form-label">Nome do Exercício</label>
+                    <input type="text" class="form-input" id="editExerciseName" placeholder="Ex: Supino Reto">
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeEditExerciseNameModal()">Cancelar</button>
+                    <button class="modal-btn btn-save" onclick="saveExerciseName()">Salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Confirmar Remoção de Exercício -->
+        <div id="deleteExerciseModal" class="weight-modal">
+            <div class="confirm-delete-modal-content">
+                <h2 class="modal-title">Remover Exercício</h2>
+                <p>Tem a certeza que deseja remover o exercício <span id="exerciseNameToDelete"></span>?</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeDeleteExerciseModal()">Cancelar</button>
+                    <button class="modal-btn btn-danger" onclick="deleteExercise()">Remover</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast">Guardado!</div>
+    </div>
+
+    <!-- Navbar Fixa -->
+    <div class="navbar">
+        <div class="nav-item active" onclick="showPage('mainPage')"><i class="bi bi-house-fill nav-icon"></i><div>HOME</div></div>
+        <div class="nav-item" onclick="showPage('exercisesPage')"><i class="bi bi-activity nav-icon"></i><div>EXERCICIOS</div></div>
+        <div class="nav-item" onclick="showPage('plansPage')"><i class="bi bi-calendar-week nav-icon"></i><div>PLANOS</div></div>
+        <div class="nav-item" onclick="showPage('workoutsPage')"><i class="bi bi-clock-history nav-icon"></i><div>TREINOS</div></div>
+        <div class="nav-item" onclick="showPage('weightPage')"><i class="bi bi-speedometer2 nav-icon"></i><div>PESO</div></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        // ===== Variáveis globais =====
+        let currentWeight = 80;
+        let selectedPlanId = null;
+        let currentPage = 'mainPage';
+        let weights = JSON.parse(localStorage.getItem("weights")) || [];
+        let weightChart;
+        let exerciseChart = null;
+        let currentExercise = null;
+        let currentPlanDetail = null;
+        let currentDayForExercise = null;
+        let currentDayDetail = null;
+        let mediaTypeToChange = null;
+
+        // Variáveis para controlar o treino atual
+        let currentWorkout = null;
+        let currentExerciseIndex = 0;
+        let timerInterval = null;
+        let timerSeconds = 120; // 2 minutos
+        let workoutStartTime = null;
+
+        // Variável para guardar o treino atualmente selecionado para detalhes
+        let currentWorkoutDetail = null;
+
+        const storageKeys = { 
+            WEIGHT: 'fitnessWeight', 
+            SELECTED_PLAN: 'fitnessSelectedPlan', 
+            WEIGHT_HISTORY: 'fitnessWeightHistory', 
+            EXERCISES: 'fitnessExercises', 
+            PLANS: 'fitnessPlans',
+            WORKOUTS: 'fitnessWorkouts',
+            EXERCISE_MEDIA: 'fitnessExerciseMedia',
+            AVAILABLE_EXERCISES: 'fitnessAvailableExercises' // Nova chave para exercícios disponíveis
+        };
+
+        // Exercícios disponíveis (agora carregados do localStorage)
+        let availableExercises = loadAvailableExercises();
+
+        // ===== Novas funções para gerir exercícios disponíveis =====
+        function loadAvailableExercises() {
+            try {
+                return JSON.parse(localStorage.getItem(storageKeys.AVAILABLE_EXERCISES)) || [];
+            } catch (e) {
+                console.error("Erro ao carregar exercícios disponíveis:", e);
+                return [];
+            }
+        }
+
+        function saveAvailableExercises(exercises) {
+            localStorage.setItem(storageKeys.AVAILABLE_EXERCISES, JSON.stringify(exercises));
+        }
+
+        // ===== Funções para a Página de Peso =====
+        function renderWeightList() {
+            const list = document.getElementById('weightList');
+            const hist = loadWeightHistory();
+            
+            list.innerHTML = '';
+            
+            if (hist.length === 0) {
+                list.innerHTML = '<li>Nenhum registro de peso ainda</li>';
+                return;
+            }
+            
+            hist.slice().reverse().forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${entry.date}</span>
+                    <span>${entry.weight} kg</span>
+                    <button class="delete-weight-btn" onclick="removeWeight(${hist.length - 1 - index})"><i class="bi bi-x"></i></button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function removeWeight(index) {
+            const hist = loadWeightHistory();
+            if (index >= 0 && index < hist.length) {
+                hist.splice(index, 1);
+                saveWeightHistory(hist);
+                initWeight();
+                showToast('Peso removido!');
+            }
+        }
+
+        function initWeight() {
+            const hist = loadWeightHistory();
+            if (hist.length > 0) {
+                currentWeight = hist[hist.length - 1].weight;
+                document.getElementById('currentWeightLabel').textContent = currentWeight + ' kg';
+                document.getElementById('currentWeightPageLabel').textContent = currentWeight + ' kg';
+            } else {
+                currentWeight = 80;
+                document.getElementById('currentWeightLabel').textContent = '0 kg';
+                document.getElementById('currentWeightPageLabel').textContent = '0 kg';
+            }
+            
+            const ctx = document.getElementById('weightChart');
+            if (weightChart) weightChart.destroy();
+            
+            if (hist.length > 0) {
+                weightChart = new Chart(ctx, {
+                    type: 'line', 
+                    data: { 
+                        labels: hist.map(h => h.date), 
+                        datasets: [{ 
+                            label: 'Peso (kg)', 
+                            data: hist.map(h => h.weight),
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Gráfico vazio
+                weightChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Peso (kg)',
+                            data: [],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            renderWeightList();
+        }
+        
+        function openWeightModal(){ 
+            document.getElementById('weightModal').style.display='block'; 
+            document.getElementById('weightDate').value = new Date().toISOString().slice(0,10);
+        }
+        
+        function closeWeightModal(){ document.getElementById('weightModal').style.display='none'; }
+        
+        function saveWeight(){ 
+            const v = parseFloat(document.getElementById('weightInput').value); 
+            const d = document.getElementById('weightDate').value || new Date().toISOString().slice(0,10);
+            
+            if (!v) {
+                alert('Insira um peso.');
+                return;
+            } 
+            
+            currentWeight = v;
+            document.getElementById('currentWeightLabel').textContent = v + ' kg';
+            document.getElementById('currentWeightPageLabel').textContent = v + ' kg';
+            
+            const hist = loadWeightHistory();
+            hist.push({ date: d, weight: v });
+            saveWeightHistory(hist);
+            
+            initWeight();
+            closeWeightModal();
+            showToast('Peso guardado!');
+        }
+
+        // ===== Funções para a Página de Exercícios =====
+        function getExercisesData(){ return loadExercisesData(); }
+        
+        function renderExercises(){
+            const q = (document.getElementById('exerciseSearch').value || '').toLowerCase();
+            const list = document.getElementById('exercisesList');
+            const items = availableExercises.filter(e => e.name.toLowerCase().includes(q));
+            
+            // Verificar se não há exercícios
+            if (availableExercises.length === 0) {
+                list.innerHTML = '<div class="card">Sem exercícios ainda.</div>';
+                return;
+            }
+            
+            // Verificar se a pesquisa não encontrou resultados
+            if (items.length === 0) {
+                list.innerHTML = '<div class="card">Nenhum exercício encontrado.</div>';
+                return;
+            }
+            
+            list.innerHTML = items.map(e => `
+                <div class="list-item">
+                    <i class="bi bi-activity"></i>
+                    <div>
+                        <div class="title">${e.name}</div>
+                        <div class="subtitle">${e.muscle}</div>
+                    </div>
+                    <button class="kebab" onclick="openExerciseDetail('${e.name.replace(/'/g,"&#39;")}')"><i class="bi bi-three-dots-vertical"></i></button>
+                </div>
+            `).join('');
+        }
+        
+        // MODAL: Adicionar exercício (substitui o prompt)
+        function openAddExerciseModal() {
+            document.getElementById('addExerciseModal').style.display = 'block';
+            document.getElementById('newExerciseName').value = '';
+            document.getElementById('newExerciseMuscle').value = 'Peito';
+        }
+        
+        function closeAddExerciseModal() {
+            document.getElementById('addExerciseModal').style.display = 'none';
+        }
+        
+        function saveNewExercise() {
+            const name = document.getElementById('newExerciseName').value.trim();
+            const muscle = document.getElementById('newExerciseMuscle').value;
+            
+            if (!name) {
+                alert('Por favor, insira um nome para o exercício.');
+                return;
+            }
+            
+            // Verificar se já existe
+            if (availableExercises.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+                alert('Já existe um exercício com esse nome.');
+                return;
+            }
+            
+            availableExercises.push({ name, muscle, type: muscle.toLowerCase() });
+            saveAvailableExercises(availableExercises); // Salvar no localStorage
+            
+            const data = loadExercisesData();
+            if (!data[name]) {
+                data[name] = { notes: '', sets: [], history: [] };
+            }
+            saveExercisesData(data);
+            
+            renderExercises();
+            closeAddExerciseModal();
+            showToast('Exercício adicionado.');
+        }
+
+        // Detalhe exercício
+        function openExerciseDetail(name){ 
+            currentExercise=name; 
+            showPage('exerciseDetailPage'); 
+            document.getElementById('exerciseDetailTitle').textContent=name; 
+            loadExerciseDetail(name);
+            loadExerciseMedia(name);
+        }
+        
+        function closeExerciseDetail(){ showPage('exercisesPage'); }
+        
+        function loadExerciseDetail(name){
+            const data=getExercisesData()[name]||{notes:'',history:[]};
+            document.getElementById('exerciseNotes').value=data.notes||'';
+            
+            // Atualizar o gráfico para mostrar a média de peso por repetição
+            const ctx = document.getElementById('exerciseChart');
+            if (exerciseChart) exerciseChart.destroy();
+            
+            if (data.history && data.history.length > 0) {
+                exerciseChart = new Chart(ctx, { 
+                    type:'line', 
+                    data:{ 
+                        labels: data.history.map(h => h.date), 
+                        datasets:[{ 
+                            label:'Média de Peso por Repetição (kg)', 
+                            data: data.history.map(h => h.averageWeightPerRep || 0),
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    }, 
+                    options:{ 
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Kg por Repetição'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Data'
+                                }
+                            }
+                        }
+                    } 
+                });
+            } else {
+                // Gráfico vazio
+                exerciseChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Média de Peso por Repetição (kg)',
+                            data: [],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Kg por Repetição'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Data'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Renderizar a lista de histórico de treinos
+            renderExerciseHistoryList(data.history || []);
+        }
+        
+        function renderExerciseHistoryList(history) {
+            const container = document.getElementById('exerciseHistoryList');
+            container.innerHTML = '';
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="exercise-history-item">Nenhum treino registrado ainda</div>';
+                return;
+            }
+            
+            // Ordenar do mais recente para o mais antigo
+            history.sort((a, b) => new Date(b.startTime || b.date) - new Date(a.startTime || a.date));
+            
+            history.forEach((workout, index) => {
+                const item = document.createElement('div');
+                item.className = 'exercise-history-item';
+                item.id = `exercise-history-${index}`;
+                
+                // Formatar as séries para exibição (inicialmente escondidas)
+                let setsHTML = '';
+                if (workout.sets && workout.sets.length) {
+                    setsHTML = workout.sets.map((set, i) => `
+                        <div class="exercise-history-set">
+                            Série ${i + 1}: ${set.repetitions || 0} reps × ${set.weight || 0} kg
+                        </div>
+                    `).join('');
+                }
+                
+                item.innerHTML = `
+                    <div class="exercise-history-header" onclick="toggleExerciseHistoryDetails(${index})">
+                        <div class="exercise-history-date">${workout.date}</div>
+                        <div class="exercise-history-avg">${workout.averageWeightPerRep ? workout.averageWeightPerRep.toFixed(2) + ' kg/rep' : 'N/A'}</div>
+                    </div>
+                    <div class="exercise-history-details">
+                        <div class="exercise-history-detail-item">
+                            <span class="exercise-history-detail-label">Séries</span>
+                            <span class="exercise-history-detail-value">${workout.sets ? workout.sets.length : 0}</span>
+                        </div>
+                        <div class="exercise-history-detail-item">
+                            <span class="exercise-history-detail-label">Reps Totais</span>
+                            <span class="exercise-history-detail-value">${workout.totalReps || 0}</span>
+                        </div>
+                        <div class="exercise-history-detail-item">
+                            <span class="exercise-history-detail-label">Volume Total</span>
+                            <span class="exercise-history-detail-value">${workout.totalVolume ? workout.totalVolume.toFixed(2) + ' kg' : 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="exercise-history-sets" id="history-sets-${index}">
+                        ${setsHTML}
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+        
+        function toggleExerciseHistoryDetails(index) {
+            const setsElement = document.getElementById(`history-sets-${index}`);
+            if (setsElement) {
+                setsElement.classList.toggle('expanded');
+            }
+        }
+        
+        function saveExerciseNotes(){ const data=loadExercisesData(); if(!data[currentExercise]) data[currentExercise]={notes:'',history:[]}; data[currentExercise].notes=document.getElementById('exerciseNotes').value; saveExercisesData(data); showToast('Notas guardadas.'); }
+
+        // Funções para gerir mídia dos exercícios
+        function openMediaMenu(type, event) {
+            event.stopPropagation();
+            const options = document.getElementById(type + 'Options');
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            
+            // Fechar outros menus abertos
+            if (type === 'image') {
+                document.getElementById('gifOptions').style.display = 'none';
+            } else {
+                document.getElementById('imageOptions').style.display = 'none';
+            }
+        }
+        
+        function changeExerciseMedia(type) {
+            mediaTypeToChange = type;
+            document.getElementById('mediaInput').click();
+            document.getElementById(type + 'Options').style.display = 'none';
+        }
+        
+        function removeExerciseMedia(type) {
+            const mediaData = loadExerciseMediaData();
+            if (!mediaData[currentExercise]) mediaData[currentExercise] = {};
+            mediaData[currentExercise][type] = null;
+            saveExerciseMediaData(mediaData);
+            updateExerciseMediaDisplay();
+            showToast(type === 'image' ? 'Imagem removida' : 'GIF removido');
+            document.getElementById(type + 'Options').style.display = 'none';
+        }
+        
+        function loadExerciseMedia(exerciseName) {
+            const mediaData = loadExerciseMediaData();
+            if (mediaData[exerciseName]) {
+                if (mediaData[exerciseName].image) {
+                    document.getElementById('exerciseImageBox').style.backgroundImage = `url(${mediaData[exerciseName].image})`;
+                    document.getElementById('exerciseImageBox').style.backgroundSize = 'cover';
+                    document.getElementById('exerciseImageBox').style.backgroundPosition = 'center';
+                    document.querySelector('#exerciseImageBox .media-label').style.display = 'none';
+                }
+                
+                if (mediaData[exerciseName].gif) {
+                    document.getElementById('exerciseGifBox').style.backgroundImage = `url(${mediaData[exerciseName].gif})`;
+                    document.getElementById('exerciseGifBox').style.backgroundSize = 'cover';
+                    document.getElementById('exerciseGifBox').style.backgroundPosition = 'center';
+                    document.querySelector('#exerciseGifBox .media-label').style.display = 'none';
+                }
+            }
+        }
+        
+        function updateExerciseMediaDisplay() {
+            const mediaData = loadExerciseMediaData();
+            if (mediaData[currentExercise]) {
+                if (mediaData[currentExercise].image) {
+                    document.getElementById('exerciseImageBox').style.backgroundImage = `url(${mediaData[currentExercise].image})`;
+                    document.getElementById('exerciseImageBox').style.backgroundSize = 'cover';
+                    document.getElementById('exerciseImageBox').style.backgroundPosition = 'center';
+                    document.querySelector('#exerciseImageBox .media-label').style.display = 'none';
+                } else {
+                    document.getElementById('exerciseImageBox').style.backgroundImage = '';
+                    document.querySelector('#exerciseImageBox .media-label').style.display = 'block';
+                }
+                
+                if (mediaData[currentExercise].gif) {
+                    document.getElementById('exerciseGifBox').style.backgroundImage = `url(${mediaData[currentExercise].gif})`;
+                    document.getElementById('exerciseGifBox').style.backgroundSize = 'cover';
+                    document.getElementById('exerciseGifBox').style.backgroundPosition = 'center';
+                    document.querySelector('#exerciseGifBox .media-label').style.display = 'none';
+                } else {
+                    document.getElementById('exerciseGifBox').style.backgroundImage = '';
+                    document.querySelector('#exerciseGifBox .media-label').style.display = 'block';
+                }
+            }
+        }
+        
+        document.getElementById('mediaInput').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const mediaData = loadExerciseMediaData();
+                    if (!mediaData[currentExercise]) mediaData[currentExercise] = {};
+                    mediaData[currentExercise][mediaTypeToChange] = e.target.result;
+                    saveExerciseMediaData(mediaData);
+                    updateExerciseMediaDisplay();
+                    showToast(mediaTypeToChange === 'image' ? 'Imagem alterada' : 'GIF alterado');
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // ===== Funções para a Página de Planos =====
+        function renderPlans(){
+            const plans = loadPlansData();
+            const el = document.getElementById('plansList');
+            if (!plans.length){ el.innerHTML = '<div class="card">Sem planos ainda.</div>'; return; }
+            el.innerHTML = plans.map(p=>`
+                <div class="list-item">
+                    <i class="bi bi-calendar-week"></i>
+                    <div>
+                        <div class="title">${p.name}</div>
+                        <div class="subtitle">${(p.days||[]).length} dias</div>
+                    </div>
+                    <button class="kebab" onclick="openPlanDetail('${p.id}')"><i class="bi bi-three-dots-vertical"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function openPlanDetail(planId){
+            const plans=loadPlansData();
+            const plan=plans.find(p=>p.id===planId);
+            if(!plan) return;
+            currentPlanDetail = JSON.parse(JSON.stringify(plan));
+            document.getElementById('planDetailTitle').textContent = currentPlanDetail.name;
+            renderPlanDaysDetail(currentPlanDetail.days);
+            showPage('planDetailPage');
+        }
+        
+        function closePlanDetail(){
+            showPage('plansPage');
+        }
+
+        function openEditPlanNameModal(){
+            document.getElementById('editPlanNameModal').style.display='block';
+            document.getElementById('editPlanNameInput').value=currentPlanDetail? currentPlanDetail.name: ''
+        }
+        
+        function closeEditPlanNameModal(){ document.getElementById('editPlanNameModal').style.display='none'; }
+        
+        function savePlanName(){ const v=document.getElementById('editPlanNameInput').value.trim(); if(!v){alert('Insira um nome.');return;} currentPlanDetail.name=v; const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} document.getElementById('planDetailTitle').textContent=v; renderPlans(); closeEditPlanNameModal(); showToast('Nome do plano atualizado.'); }
+
+        function openAddDayModal(){ document.getElementById('addDayModal').style.display='block'; document.getElementById('dayNameInput').value=''; }
+        
+        function closeAddDayModal(){ document.getElementById('addDayModal').style.display='none'; }
+        
+        function saveDay(){ const n=document.getElementById('dayNameInput').value.trim(); if(!n){alert('Insira um nome.');return;} if(!currentPlanDetail.days) currentPlanDetail.days=[]; currentPlanDetail.days.push({ name:n, exercises:[] }); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeAddDayModal(); showToast('Dia adicionado.'); }
+
+        function openAddExerciseToDayModal(dayIndex){
+            currentDayForExercise = dayIndex;
+            const sel = document.getElementById('exerciseSelect');
+            sel.innerHTML = '<option value="">Selecione um exercício</option>' + availableExercises.map(e=>`<option value="${e.name}">${e.name}</option>`).join('');
+            document.getElementById('exerciseSets').value = '';
+            document.getElementById('exerciseReps').value = '';
+            document.getElementById('exerciseWeight').value = '';
+            document.getElementById('addExerciseToDayModal').style.display='block';
+        }
+        
+        function closeAddExerciseToDayModal(){
+            document.getElementById('addExerciseToDayModal').style.display='none';
+        }
+        
+        function saveExerciseToDay(){
+            const exerciseName = document.getElementById('exerciseSelect').value;
+            const sets = document.getElementById('exerciseSets').value;
+            const reps = document.getElementById('exerciseReps').value;
+            const weight = document.getElementById('exerciseWeight').value;
+            if(!exerciseName || !sets || !reps){ alert('Preencha os campos obrigatórios.'); return; }
+            if(!currentPlanDetail || currentDayForExercise===null){ showToast('Erro: Plano/dia não carregado.'); return; }
+            if(!currentPlanDetail.days[currentDayForExercise].exercises) currentPlanDetail.days[currentDayForExercise].exercises=[];
+            currentPlanDetail.days[currentDayForExercise].exercises.push({ name: exerciseName, sets, reps, weight });
+            const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeAddExerciseToDayModal(); showToast('Exercício adicionado.'); }
+
+        function openPlanModal(){
+            const m=document.getElementById('planModal');
+            if(!m) return;
+            document.getElementById('modalPlanTitle').textContent='Criar Plano de Treino';
+            document.getElementById('planNameInput').value='';
+            m.style.display='block';
+        }
+        
+        function closePlanModal(){
+            const m=document.getElementById('planModal');
+            if(m) m.style.display='none';
+        }
+        
+        function savePlan(){
+            const name=(document.getElementById('planNameInput').value||'').trim();
+            if(!name){alert('Insira o nome do plano.');return;}
+            const plans=loadPlansData();
+            const newPlan={ id:'plan-'+Date.now(), name, days:[] };
+            plans.push(newPlan); savePlansData(plans);
+            closePlanModal(); renderPlans(); showToast('Plano criado com sucesso!');
+        }
+        
+        function savePlanChanges(){
+            if(!currentPlanDetail) return;
+            const plans=loadPlansData();
+            const i=plans.findIndex(p=>p.id===currentPlanDetail.id);
+            if(i!==-1){plans[i]=currentPlanDetail;
+                savePlansData(plans);
+                renderPlans(); showToast('Plano guardado!');}
+        }
+        
+        function removePlan(){
+            if(!currentPlanDetail) return;
+            if(!confirm('Tem a certeza que deseja remover este plano?')) return;
+            let plans=loadPlansData();
+            plans=plans.filter(p=>p.id!==currentPlanDetail.id);
+            savePlansData(plans); currentPlanDetail=null;
+            closePlanDetail();
+            renderPlans();
+            showToast('Plano removido.');
+        }
+
+        let currentDayForEdit = null;
+        
+        function openDayOptionsModal(dayIndex){ currentDayForEdit=dayIndex; const m=document.getElementById('dayOptionsModal'); const input=document.getElementById('dayEditNameInput'); if(!currentPlanDetail||!currentPlanDetail.days||!currentPlanDetail.days[dayIndex]) return; input.value=currentPlanDetail.days[dayIndex].name||''; m.style.display='block'; }
+        
+        function closeDayOptionsModal(){ const m=document.getElementById('dayOptionsModal'); if(m) m.style.display='none'; }
+        
+        function saveDayName(){ if(currentDayForEdit===null||!currentPlanDetail) return; const v=(document.getElementById('dayEditNameInput').value||'').trim(); if(!v){alert('Insira um nome.'); return;} currentPlanDetail.days[currentDayForEdit].name=v; const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!=-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeDayOptionsModal(); showToast('Dia atualizado!'); }
+        
+        function removeDay(){ if(currentDayForEdit===null||!currentPlanDetail) return; if(!confirm('Apagar este dia?')) return; currentPlanDetail.days.splice(currentDayForEdit,1); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeDayOptionsModal(); showToast('Dia removido.'); }
+
+        let currentExerciseForEdit = null;
+        
+        function openEditExerciseModal(d,e){ currentDayForEdit=d; currentExerciseForEdit=e; const ex=currentPlanDetail&&currentPlanDetail.days&&currentPlanDetail.days[d]&&currentPlanDetail.days[d].exercises? currentPlanDetail.days[d].exercises[e]: null; if(!ex) return; document.getElementById('editExerciseNameInput').value=ex.name||''; document.getElementById('editExerciseSets').value=ex.sets||''; document.getElementById('editExerciseReps').value=ex.reps||''; document.getElementById('editExerciseWeight').value=ex.weight||''; document.getElementById('editExerciseModal').style.display='block'; }
+        
+        function closeEditExerciseModal(){ document.getElementById('editExerciseModal').style.display='none'; }
+        
+        function saveEditedExercise(){ if(currentDayForEdit===null||currentExerciseForEdit===null) return; const name=(document.getElementById('editExerciseNameInput').value||'').trim(); const sets=document.getElementById('editExerciseSets').value; const reps=document.getElementById('editExerciseReps').value; const weight=document.getElementById('editExerciseWeight').value; if(!name||!sets||!reps){alert('Preencha os campos.');return;} currentPlanDetail.days[currentDayForEdit].exercises[currentExerciseForEdit]={ name, sets, reps, weight }; const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeEditExerciseModal(); showToast('Exercício atualizado!'); }
+        
+        function removeExerciseFromDay(){ if(currentDayForEdit===null||currentExerciseForEdit===null) return; if(!confirm('Remover este exercício?')) return; currentPlanDetail.days[currentDayForEdit].exercises.splice(currentExerciseForEdit,1); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeEditExerciseModal(); showToast('Exercício removido.'); }
+
+        // MODAL: Editar nome do exercício (substitui o prompt)
+        function openEditExerciseNameModal() {
+            document.getElementById('editExerciseName').value = currentExercise;
+            document.getElementById('editExerciseNameModal').style.display = 'block';
+        }
+        
+        function closeEditExerciseNameModal() {
+            document.getElementById('editExerciseNameModal').style.display = 'none';
+        }
+        
+        function saveExerciseName() {
+            const novo = document.getElementById('editExerciseName').value.trim();
+            if (!novo || novo === currentExercise) {
+                closeEditExerciseNameModal();
+                return;
+            }
+            
+            const data = loadExercisesData();
+            if (data[novo]) {
+                alert('Já existe um exercício com esse nome.');
+                return;
+            }
+            
+            data[novo] = data[currentExercise] || { notes: '', sets: [], history: [] };
+            delete data[currentExercise];
+            saveExercisesData(data);
+            
+            // Atualizar no array de exercícios disponíveis
+            const idx = availableExercises.findIndex(e => e.name === currentExercise);
+            if (idx !== -1) {
+                availableExercises[idx].name = novo;
+            } else {
+                availableExercises.push({ name: novo, muscle: 'Outro', type: 'other' });
+            }
+            saveAvailableExercises(availableExercises); // Salvar no localStorage
+            
+            const plans = loadPlansData();
+            plans.forEach(p => (p.days || []).forEach(d => (d.exercises || []).forEach(ex => {
+                if (ex.name === currentExercise) ex.name = novo;
+            })));
+            savePlansData(plans);
+            
+            currentExercise = novo;
+            document.getElementById('exerciseDetailTitle').textContent = novo;
+            renderExercises();
+            if (currentPlanDetail) renderPlanDaysDetail(currentPlanDetail.days);
+            closeEditExerciseNameModal();
+            showToast('Nome do exercício atualizado!');
+        }
+        
+        // MODAL: Remover exercício
+        function openDeleteExerciseModal() {
+            document.getElementById('exerciseNameToDelete').textContent = currentExercise;
+            document.getElementById('deleteExerciseModal').style.display = 'block';
+        }
+        
+        function closeDeleteExerciseModal() {
+            document.getElementById('deleteExerciseModal').style.display = 'none';
+        }
+        
+        function deleteExercise() {
+            if (!currentExercise) return;
+            
+            // Remover dos exercícios disponíveis
+            const index = availableExercises.findIndex(e => e.name === currentExercise);
+            if (index !== -1) {
+                availableExercises.splice(index, 1);
+                saveAvailableExercises(availableExercises); // Salvar no localStorage
+            }
+            
+            // Remover dos dados do exercício
+            const data = loadExercisesData();
+            if (data[currentExercise]) {
+                delete data[currentExercise];
+                saveExercisesData(data);
+            }
+            
+            // Remover dos planos
+            const plans = loadPlansData();
+            plans.forEach(plan => {
+                if (plan.days) {
+                    plan.days.forEach(day => {
+                        if (day.exercises) {
+                            day.exercises = day.exercises.filter(ex => ex.name !== currentExercise);
+                        }
+                    });
+                }
+            });
+            savePlansData(plans);
+            
+            closeDeleteExerciseModal();
+            showToast('Exercício removido.');
+            closeExerciseDetail();
+            renderExercises();
+        }
+
+        function renderPlanDaysDetail(days){
+            const daysContainer = document.getElementById('planDaysDetail');
+            if(!days || !days.length){ daysContainer.innerHTML = `<div class="card" style="text-align:center;">Nenhum dia adicionado</div>`; return; }
+            let html='';
+            days.forEach((day, dIndex)=>{
+                let exercisesHTML = '';
+                if(!day.exercises || !day.exercises.length){ exercisesHTML = `<div class=\"day-empty\">Sem exercícios ainda</div>`; }
+                else {
+                    day.exercises.forEach((ex, eIndex)=>{
+                        exercisesHTML += `
+                        <div class=\"exercise-row\">
+                            <div class=\"exercise-row-main\">
+                                <div class=\"exercise-row-name\">${ex.name}</div>
+                                <div class=\"exercise-row-meta\">${ex.sets} séries × ${ex.reps} reps ${ex.weight ? ('@ '+ex.weight+' kg') : ''}</div>
+                            </div>
+                            <button class=\"exercise-row-options\" onclick=\"openEditExerciseModal(${dIndex},${eIndex})\"><i class=\"bi bi-three-dots-vertical\"></i></button>
+                        </div>`;
+                    });
+                }
+                html += `
+                <div class=\"card\">
+                    <div class=\"exercise-detail-header\">
+                        <h3 class=\"exercise-detail-title\" style=\"margin:0;\">${day.name}</h3>
+                        <div></div>
+                        <button class=\"kebab\" onclick=\"openDayOptionsModal(${dIndex})\"><i class=\"bi bi-three-dots-vertical\"></i></button>
+                    </div>
+                    <div class=\"plan-day-exercises-list\">${exercisesHTML}</div>
+                    <button class=\"add-exercise-inline\" onclick=\"openAddExerciseToDayModal(${dIndex})\"><i class=\"bi bi-plus-circle\"></i> Adicionar Exercício</button>
+                </div>`;
+            });
+            daysContainer.innerHTML = html;
+        }
+
+        // ===== Funções para a Página de Detalhes do Dia - ATUALIZADA conforme a imagem =====
+        function openDayDetail(planId, dayIndex) {
+            const plans = loadPlansData();
+            const plan = plans.find(p => p.id === planId);
+            if (!plan || !plan.days || !plan.days[dayIndex]) return;
+            
+            currentDayDetail = {
+                plan: plan,
+                dayIndex: dayIndex,
+                day: plan.days[dayIndex]
+            };
+            
+            document.getElementById('dayDetailTitle').textContent = currentDayDetail.day.name;
+            renderDayExercises(currentDayDetail.day.exercises);
+            showPage('dayDetailPage');
+        }
+        
+        function closeDayDetail() {
+            showPage('mainPage');
+        }
+        
+        function renderDayExercises(exercises) {
+            const container = document.getElementById('dayExercisesList');
+            container.innerHTML = '';
+            
+            if (!exercises || !exercises.length) {
+                container.innerHTML = '<div class="card">Nenhum exercício neste dia.</div>';
+                return;
+            }
+            
+            exercises.forEach(exercise => {
+                const exerciseEl = document.createElement('div');
+                exerciseEl.className = 'day-detail-exercise';
+                exerciseEl.innerHTML = `
+                    <div class="day-detail-exercise-header">
+                        <div class="day-detail-exercise-name">${exercise.name}</div>
+                    </div>
+                    <div class="day-detail-exercise-details">
+                        <span class="day-detail-exercise-sets">${exercise.sets}x${exercise.reps}</span>
+                        <span class="day-detail-exercise-weight">${exercise.weight || '0'}kg</span>
+                    </div>
+                `;
+                container.appendChild(exerciseEl);
+            });
+        }
+        
+        function startWorkout() {
+            if (!currentDayDetail) return;
+            
+            // Inicializar o treino atual
+            currentWorkout = {
+                planId: currentDayDetail.plan.id,
+                planName: currentDayDetail.plan.name,
+                dayIndex: currentDayDetail.dayIndex,
+                dayName: currentDayDetail.day.name,
+                exercises: JSON.parse(JSON.stringify(currentDayDetail.day.exercises)),
+                startTime: new Date(),
+                completedExercises: []
+            };
+            
+            // Inicializar os resultados para cada exercício
+            currentWorkout.exercises.forEach(exercise => {
+                exercise.results = [];
+                for (let i = 0; i < exercise.sets; i++) {
+                    exercise.results.push({
+                        repetitions: '',
+                        weight: ''
+                    });
+                }
+            });
+            
+            // Ir para a página de treino
+            showWorkoutPage();
+        }
+
+        // ===== NOVAS FUNÇÕES PARA O FLUXO DE TREINO =====
+        
+        function showWorkoutPage() {
+            if (!currentWorkout) return;
+            
+            document.getElementById('workoutTitle').textContent = currentWorkout.dayName;
+            const container = document.getElementById('workoutExercisesList');
+            container.innerHTML = '';
+            
+            currentWorkout.exercises.forEach((exercise, index) => {
+                const isCompleted = currentWorkout.completedExercises.includes(index);
+                const exerciseEl = document.createElement('div');
+                exerciseEl.className = 'workout-exercise-item';
+                exerciseEl.innerHTML = `
+                    <div class="workout-exercise-info">
+                        <div class="workout-exercise-name">${exercise.name}</div>
+                        <div class="workout-exercise-details">${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
+                    </div>
+                    <button class="workout-exercise-btn" onclick="startExercise(${index})" ${isCompleted ? 'disabled' : ''}>
+                        ${isCompleted ? 'Concluído' : 'Iniciar'}
+                    </button>
+                `;
+                container.appendChild(exerciseEl);
+            });
+            
+            // Mostrar botão de terminar treino se todos os exercícios estiverem concluídos
+            const finishBtn = document.getElementById('finishWorkoutBtn');
+            if (currentWorkout.completedExercises.length === currentWorkout.exercises.length) {
+                finishBtn.style.display = 'block';
+            } else {
+                finishBtn.style.display = 'none';
+            }
+            
+            showPage('workoutPage');
+        }
+        
+        function closeWorkoutPage() {
+            if (confirm('Tem a certeza que deseja sair do treino? O progresso será perdido.')) {
+                currentWorkout = null;
+                showPage('dayDetailPage');
+            }
+        }
+        
+        function startExercise(exerciseIndex) {
+            if (!currentWorkout || !currentWorkout.exercises[exerciseIndex]) return;
+            
+            currentExerciseIndex = exerciseIndex;
+            const exercise = currentWorkout.exercises[exerciseIndex];
+            
+            document.getElementById('exerciseWorkoutTitle').textContent = exercise.name;
+            document.getElementById('exerciseWorkoutTarget').textContent = `Objetivo: ${exercise.sets}x${exercise.reps} ${exercise.weight ? `@ ${exercise.weight} kg` : ''}`;
+            
+            // Criar a grelha de séries
+            const seriesGrid = document.getElementById('seriesGrid');
+            seriesGrid.innerHTML = '';
+            
+            exercise.results.forEach((result, index) => {
+                const seriesEl = document.createElement('div');
+                seriesEl.className = 'series-item';
+                seriesEl.innerHTML = `
+                    <div class="series-header">
+                        <div class="series-number">${index + 1}ª Série</div>
+                        <div class="series-target">${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
+                    </div>
+                    <div class="series-inputs">
+                        <div class="input-group">
+                            <label class="input-label">Repetições Realizadas</label>
+                            <input type="number" class="series-input" id="reps-${index}" value="${result.repetitions}" placeholder="Reps" min="0" oninput="validateExerciseForm()">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Peso Utilizado (kg)</label>
+                            <input type="number" class="series-input" id="weight-${index}" value="${result.weight}" placeholder="Peso" step="0.5" min="0" oninput="validateExerciseForm()">
+                        </div>
+                    </div>
+                `;
+                seriesGrid.appendChild(seriesEl);
+            });
+            
+            // Reiniciar o temporizador
+            timerSeconds = 120;
+            updateTimerButton();
+            
+            // Validar formulário inicialmente
+            validateExerciseForm();
+            
+            showPage('exerciseWorkoutPage');
+        }
+        
+        function validateExerciseForm() {
+            const exercise = currentWorkout.exercises[currentExerciseIndex];
+            let allFilled = true;
+            
+            for (let i = 0; i < exercise.results.length; i++) {
+                const reps = document.getElementById(`reps-${i}`).value;
+                const weight = document.getElementById(`weight-${i}`).value;
+                
+                if (!reps || !weight) {
+                    allFilled = false;
+                    break;
+                }
+            }
+            
+            const finishBtn = document.getElementById('finishExerciseBtn');
+            finishBtn.disabled = !allFilled;
+        }
+        
+        function closeExerciseWorkout() {
+            // Guardar os resultados inseridos
+            const exercise = currentWorkout.exercises[currentExerciseIndex];
+            
+            for (let i = 0; i < exercise.results.length; i++) {
+                exercise.results[i].repetitions = document.getElementById(`reps-${i}`).value;
+                exercise.results[i].weight = document.getElementById(`weight-${i}`).value;
+            }
+            
+            showWorkoutPage();
+        }
+        
+        function finishExercise() {
+            // Verificar se todos os campos estão preenchidos
+            const exercise = currentWorkout.exercises[currentExerciseIndex];
+            let allFilled = true;
+            
+            for (let i = 0; i < exercise.results.length; i++) {
+                const reps = document.getElementById(`reps-${i}`).value;
+                const weight = document.getElementById(`weight-${i}`).value;
+                
+                if (!reps || !weight) {
+                    allFilled = false;
+                    break;
+                }
+            }
+            
+            if (!allFilled) {
+                alert('Por favor, preencha todos os campos das séries antes de terminar o exercício.');
+                return;
+            }
+            
+            // Guardar os resultados inseridos
+            for (let i = 0; i < exercise.results.length; i++) {
+                exercise.results[i].repetitions = document.getElementById(`reps-${i}`).value;
+                exercise.results[i].weight = document.getElementById(`weight-${i}`).value;
+            }
+            
+            // Marcar exercício como concluído
+            if (!currentWorkout.completedExercises.includes(currentExerciseIndex)) {
+                currentWorkout.completedExercises.push(currentExerciseIndex);
+            }
+            
+            // Atualizar o histórico do exercício
+            updateExerciseHistory(exercise);
+            
+            // Parar o temporizador se estiver ativo
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            showWorkoutPage();
+        }
+        
+        function updateExerciseHistory(exercise) {
+            // Calcular a média de peso por repetição
+            let totalReps = 0;
+            let totalVolume = 0;
+            
+            for (let i = 0; i < exercise.results.length; i++) {
+                const reps = parseInt(exercise.results[i].repetitions) || 0;
+                const weight = parseFloat(exercise.results[i].weight) || 0;
+                totalReps += reps;
+                totalVolume += reps * weight;
+            }
+            
+            const averageWeightPerRep = totalReps > 0 ? totalVolume / totalReps : 0;
+            
+            // Atualizar os dados do exercício
+            const exercisesData = getExercisesData();
+            if (!exercisesData[exercise.name]) {
+                exercisesData[exercise.name] = { notes: '', history: [] };
+            }
+            
+            // Adicionar entrada ao histórico
+            exercisesData[exercise.name].history.push({
+                date: new Date().toLocaleDateString(),
+                startTime: currentWorkout.startTime,
+                sets: exercise.results,
+                totalReps: totalReps,
+                totalVolume: totalVolume,
+                averageWeightPerRep: averageWeightPerRep
+            });
+            
+            saveExercisesData(exercisesData);
+        }
+        
+        function startTimer() {
+            const timerBtn = document.getElementById('timerBtn');
+            
+            if (timerInterval) {
+                // Parar o temporizador
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerSeconds = 120;
+                updateTimerButton();
+            } else {
+                // Iniciar o temporizador
+                timerBtn.classList.add('timer-active');
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerButton();
+                    
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        timerBtn.classList.remove('timer-active');
+                        timerSeconds = 120;
+                        updateTimerButton();
+                        showToast('Tempo de descanso terminado!');
+                    }
+                }, 1000);
+            }
+        }
+        
+        function updateTimerButton() {
+            const timerBtn = document.getElementById('timerBtn');
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            
+            if (timerInterval) {
+                timerBtn.textContent = `Parar Temporizador (${minutes}:${seconds < 10 ? '0' : ''}${seconds})`;
+            } else {
+                timerBtn.textContent = 'Iniciar Temporizador (2:00)';
+            }
+        }
+        
+        function showExerciseInfo() {
+            const exercise = currentWorkout.exercises[currentExerciseIndex];
+            const exerciseData = getExercisesData()[exercise.name] || {};
+            
+            document.getElementById('exerciseInfoTitle').textContent = exercise.name;
+            
+            let content = '';
+            if (exerciseData.notes) {
+                content += `<p>${exerciseData.notes}</p>`;
+            } else {
+                content += '<p>Nenhuma informação adicional disponível.</p>';
+            }
+            
+            document.getElementById('exerciseInfoContent').innerHTML = content;
+            document.getElementById('exerciseInfoModal').style.display = 'block';
+        }
+        
+        function closeExerciseInfo() {
+            document.getElementById('exerciseInfoModal').style.display = 'none';
+        }
+        
+        function finishWorkout() {
+            if (!currentWorkout) return;
+            
+            // Calcular a duração do treino
+            const endTime = new Date();
+            const durationMs = endTime - currentWorkout.startTime;
+            const durationMinutes = Math.floor(durationMs / 60000);
+            const durationSeconds = Math.floor((durationMs % 60000) / 1000);
+            currentWorkout.duration = `${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+            currentWorkout.endTime = endTime;
+            currentWorkout.date = currentWorkout.startTime.toLocaleDateString();
+            
+            // Guardar o treino no histórico
+            const workouts = loadWorkoutsData();
+            workouts.push(currentWorkout);
+            saveWorkoutsData(workouts);
+            
+            // Mostrar resumo do treino
+            showWorkoutSummary();
+        }
+        
+        function showWorkoutSummary() {
+            if (!currentWorkout) return;
+            
+            document.getElementById('summaryPlanName').textContent = `${currentWorkout.planName} - ${currentWorkout.dayName}`;
+            document.getElementById('summaryDuration').textContent = `Duração: ${currentWorkout.duration}`;
+            
+            const container = document.getElementById('summaryExercisesList');
+            container.innerHTML = '';
+            
+            currentWorkout.exercises.forEach(exercise => {
+                const exerciseEl = document.createElement('div');
+                exerciseEl.className = 'summary-exercise';
+                
+                let resultsHTML = '';
+                exercise.results.forEach((result, index) => {
+                    resultsHTML += `
+                        <div>Série ${index + 1}: ${result.repetitions || '0'} reps @ ${result.weight || '0'} kg</div>
+                    `;
+                });
+                
+                exerciseEl.innerHTML = `
+                    <div><strong>${exercise.name}</strong></div>
+                    ${resultsHTML}
+                `;
+                container.appendChild(exerciseEl);
+            });
+            
+            showPage('workoutSummaryPage');
+        }
+        
+        function closeWorkoutSummary() {
+            currentWorkout = null;
+            showPage('mainPage');
+        }
+
+        // ===== Funções para a Página de Treinos (Histórico) - MODIFICADO conforme solicitado =====
+        function renderWorkouts() {
+            const workouts = loadWorkoutsData();
+            const container = document.getElementById('workoutsList');
+            container.innerHTML = '';
+            
+            if (!workouts.length) {
+                container.innerHTML = '<div class="card">Nenhum treino registrado ainda.</div>';
+                return;
+            }
+            
+            // Ordenar do mais recente para o mais antigo
+            workouts.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            
+            workouts.forEach((workout, index) => {
+                const workoutEl = document.createElement('div');
+                workoutEl.className = 'workout-item-compact';
+                workoutEl.onclick = () => openWorkoutDetailModal(workout, index);
+                
+                // Formatar data e hora
+                const startTime = new Date(workout.startTime);
+                const formattedDate = startTime.toLocaleDateString();
+                const formattedTime = startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                workoutEl.innerHTML = `
+                    <div class="workout-header-compact">
+                        <div class="workout-title-compact">${workout.planName}</div>
+                        <div class="workout-date-compact">${formattedDate}<br>${formattedTime}</div>
+                    </div>
+                    <div class="workout-details-compact">
+                        <div class="workout-day-compact">${workout.dayName}</div>
+                        <div class="workout-duration-compact">${workout.duration}</div>
+                    </div>
+                `;
+                
+                container.appendChild(workoutEl);
+            });
+        }
+        
+        function openWorkoutDetailModal(workout, index) {
+            currentWorkoutDetail = { ...workout, index };
+            const modal = document.getElementById('workoutDetailModal');
+            const infoContainer = document.getElementById('workoutDetailInfo');
+            const exercisesContainer = document.getElementById('workoutDetailExercises');
+            
+            // Formatar data e hora
+            const startTime = new Date(workout.startTime);
+            const formattedDate = startTime.toLocaleDateString();
+            const formattedTime = startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Preencher informações do treino
+            infoContainer.innerHTML = `
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Plano:</span>
+                    <span class="workout-detail-info-value">${workout.planName}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Dia:</span>
+                    <span class="workout-detail-info-value">${workout.dayName}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Data:</span>
+                    <span class="workout-detail-info-value">${formattedDate}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Hora:</span>
+                    <span class="workout-detail-info-value">${formattedTime}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Duração:</span>
+                    <span class="workout-detail-info-value">${workout.duration}</span>
+                </div>
+            `;
+            
+            // Preencher exercícios do treino
+            exercisesContainer.innerHTML = '<h3>Exercícios</h3>';
+            
+            workout.exercises.forEach(exercise => {
+                const exerciseEl = document.createElement('div');
+                exerciseEl.className = 'workout-detail-exercise';
+                
+                let resultsHTML = '';
+                if (exercise.results && exercise.results.length) {
+                    exercise.results.forEach((result, index) => {
+                        resultsHTML += `
+                            <div class="workout-detail-exercise-sets">
+                                Série ${index + 1}: ${result.repetitions || '0'} reps @ ${result.weight || '0'} kg
+                            </div>
+                        `;
+                    });
+                }
+                
+                exerciseEl.innerHTML = `
+                    <div class="workout-detail-exercise-name">${exercise.name}</div>
+                    <div class="workout-detail-exercise-details">
+                        <div>Planejado: ${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
+                        ${resultsHTML}
+                    </div>
+                `;
+                
+                exercisesContainer.appendChild(exerciseEl);
+            });
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeWorkoutDetailModal() {
+            document.getElementById('workoutDetailModal').style.display = 'none';
+        }
+        
+        function deleteWorkout() {
+            if (!currentWorkoutDetail) return;
+            
+            if (!confirm('Tem a certeza que deseja eliminar este treino?')) return;
+            
+            // Remover o treino do histórico
+            const workouts = loadWorkoutsData();
+            workouts.splice(currentWorkoutDetail.index, 1);
+            saveWorkoutsData(workouts);
+            
+            // Remover o treino do histórico de cada exercício - CORREÇÃO: Garantir que remove completamente
+            const exercisesData = loadExercisesData();
+            currentWorkoutDetail.exercises.forEach(exercise => {
+                if (exercisesData[exercise.name] && exercisesData[exercise.name].history) {
+                    // Filtra removendo todas as entradas com a mesma data/hora de início
+                    exercisesData[exercise.name].history = exercisesData[exercise.name].history.filter(
+                        h => {
+                            const workoutStartTime = new Date(currentWorkoutDetail.startTime).getTime();
+                            const historyStartTime = new Date(h.startTime).getTime();
+                            return historyStartTime !== workoutStartTime;
+                        }
+                    );
+                }
+            });
+            saveExercisesData(exercisesData);
+            
+            // Fechar o modal
+            closeWorkoutDetailModal();
+            
+            // Atualizar a lista de treinos
+            renderWorkouts();
+            
+            // Atualizar o gráfico e histórico do exercício se estivermos na página de detalhes do exercício
+            if (currentPage === 'exerciseDetailPage' && currentExercise) {
+                loadExerciseDetail(currentExercise);
+            }
+            
+            // Mostrar toast em vez de alert
+            showToast('Treino eliminado!');
+        }
+
+        // ===== Seleção de plano da Home =====
+        function openPlanSelection() {
+            const modal = document.getElementById('planSelectionModal');
+            const planListContainer = document.getElementById('planSelectionList');
+            const plans = loadPlansData();
+
+            planListContainer.innerHTML = '';
+
+            if (!plans.length) {
+                planListContainer.innerHTML = '<div class="card">Nenhum plano disponível. Crie um plano na página "Planos".</div>';
+                modal.style.display = 'block';
+                return;
+            }
+
+            plans.forEach(plan => {
+                const planItem = document.createElement('div');
+                planItem.className = 'list-item';
+                planItem.innerHTML = `
+                    <i class="bi bi-calendar-week"></i>
+                    <div>
+                        <div class="title">${plan.name}</div>
+                        <div class="subtitle">${plan.days ? plan.days.length : 0} dias</div>
+                    </div>
+                    <button class="kebab" onclick="choosePlanById('${plan.id}'); document.getElementById('planSelectionModal').style.display='none'"><i class="bi bi-check-lg"></i></button>
+                `;
+                planListContainer.appendChild(planItem);
+            });
+
+            modal.style.display = 'block';
+        }
+
+        function closePlanSelection() {
+            document.getElementById('planSelectionModal').style.display = 'none';
+        }
+
+        function choosePlanById(planId) {
+            const plans = loadPlansData() || [];
+            const plan = plans.find(x => x.id === planId);
+            if (!plan) {
+                alert('Plano não encontrado.');
+                return;
+            }
+
+            selectedPlanId = planId;
+            localStorage.setItem(storageKeys.SELECTED_PLAN, planId);
+
+            const selLabel = document.getElementById('selectedPlanLabel');
+            if (selLabel) selLabel.textContent = plan.name || '—';
+
+            renderSelectedPlanDays(plan);
+        }
+
+        function renderSelectedPlanDays(plan) {
+            const container = document.getElementById('selectedPlanDays');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const days = (plan && plan.days) ? plan.days : [];
+            if (!days.length) {
+                container.innerHTML = `<div class="card"><div style="padding:12px;">Este plano não tem dias adicionados.</div></div>`;
+                return;
+            }
+
+            days.forEach((day, idx) => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-number-box">
+                        <div>Dia</div>
+                        <div>${idx + 1}</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <h5>${day.name}</h5>
+                        <small>${day.exercises ? day.exercises.length : 0} exercícios</small>
+                    </div>
+                    <button class="btn primary" onclick="openDayDetail('${plan.id}', ${idx})">Começar</button>
+                `;
+                container.appendChild(dayCard);
+            });
+        }
+
+        // ===== Utilidades LocalStorage =====
+        function loadWeight() { return parseFloat(localStorage.getItem(storageKeys.WEIGHT) || '80'); }
+        function saveWeightValue(v) { localStorage.setItem(storageKeys.WEIGHT, String(v)); }
+        function loadWeightHistory() { 
+            try {
+                return JSON.parse(localStorage.getItem(storageKeys.WEIGHT_HISTORY)) || [];
+            } catch (e) {
+                console.error("Erro ao carregar histórico de pesos:", e);
+                return [];
+            }
+        }
+        function saveWeightHistory(arr) { localStorage.setItem(storageKeys.WEIGHT_HISTORY, JSON.stringify(arr)); }
+        function loadExercisesData() { return JSON.parse(localStorage.getItem(storageKeys.EXERCISES) || '{}'); }
+        function saveExercisesData(obj) { localStorage.setItem(storageKeys.EXERCISES, JSON.stringify(obj)); }
+        function loadPlansData() { return JSON.parse(localStorage.getItem(storageKeys.PLANS) || '[]'); }
+        function savePlansData(arr) { localStorage.setItem(storageKeys.PLANS, JSON.stringify(arr)); }
+        function loadExerciseMediaData() { return JSON.parse(localStorage.getItem(storageKeys.EXERCISE_MEDIA) || '{}'); }
+        function saveExerciseMediaData(obj) { localStorage.setItem(storageKeys.EXERCISE_MEDIA, JSON.stringify(obj)); }
+        function loadWorkoutsData() { return JSON.parse(localStorage.getItem(storageKeys.WORKOUTS) || '[]'); }
+        function saveWorkoutsData(arr) { localStorage.setItem(storageKeys.WORKOUTS, JSON.stringify(arr)); }
+
+        function showToast(msg) { 
+            const t = document.getElementById('toast'); 
+            t.textContent = msg; 
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 1600); 
+        }
+
+        // ===== Navegação =====
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+            
+            if (id==='mainPage') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if (id==='exercisesPage') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            if (id==='plansPage') document.querySelectorAll('.nav-item')[2].classList.add('active');
+            if (id==='workoutsPage') {
+                document.querySelectorAll('.nav-item')[3].classList.add('active');
+                renderWorkouts();
+            }
+            if (id==='weightPage') {
+                document.querySelectorAll('.nav-item')[4].classList.add('active');
+                initWeight();
+            }
+            
+            currentPage = id;
+            
+            // Fechar menus de mídia abertos
+            document.getElementById('imageOptions').style.display = 'none';
+            document.getElementById('gifOptions').style.display = 'none';
+        }
+
+        // Fechar modais clicando fora
+        window.onclick = function(event){
+            const modals = [
+                'weightModal', 'planSelectionModal', 'addDayModal', 'addExerciseToDayModal',
+                'editPlanNameModal', 'planModal', 'dayOptionsModal', 'editExerciseModal', 
+                'exerciseInfoModal', 'workoutDetailModal', 'addExerciseModal', 
+                'editExerciseNameModal', 'deleteExerciseModal'
+            ];
+            
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    if (modalId === 'workoutDetailModal') {
+                        closeWorkoutDetailModal();
+                    } else {
+                        eval(`close${modalId.charAt(0).toUpperCase() + modalId.slice(1)}()`);
+                    }
+                }
+            });
+            
+            // Fechar menus de mídia se clicar fora deles
+            if (!event.target.closest('.media-menu') && !event.target.closest('.media-options')) {
+                document.getElementById('imageOptions').style.display = 'none';
+                document.getElementById('gifOptions').style.display = 'none';
+            }
+        }
+
+        // ===== Init =====
+        function init(){
+            // peso + gráfico
+            initWeight();
+            // plano selecionado
+            const sp = localStorage.getItem(storageKeys.SELECTED_PLAN);
+            if (sp){ 
+                selectedPlanId=sp; 
+                const p=loadPlansData().find(p=>p.id===sp); 
+                document.getElementById('selectedPlanLabel').textContent=p? p.name: '—'; 
+                
+                if (p) {
+                    renderSelectedPlanDays(p);
+                }
+            }
+            // exercícios
+            renderExercises();
+            // planos
+            renderPlans();
+        }
+        
+        // Inicializar quando a página carregar
+        window.addEventListener('load', init);
+        
+        // Fechar menus de mídia ao rolar
+        window.addEventListener('scroll', function() {
+            document.getElementById('imageOptions').style.display = 'none';
+            document.getElementById('gifOptions').style.display = 'none';
+        });
+    </script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+            navigator.serviceWorker
+                .register("service-worker.js")
+                .then(() => console.log("Service Worker registado"))
+                .catch(err => console.log("Erro no SW:", err));
+            });
+        }
+    </script>
+</body>
+</html>
