@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        /* Estilos anteriores mantidos */
         :root {
             --bg: #0b1220;
             --card: #121a2b;
@@ -598,6 +597,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
+            position: relative;
         }
         .workout-detail-title {
             font-weight: 700;
@@ -610,6 +610,10 @@
             color: var(--text);
             font-size: 1.5rem;
             cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 3001;
         }
         .workout-detail-info {
             margin-bottom: 16px;
@@ -681,6 +685,7 @@
         .exercise-history-date {
             font-weight: 700;
             font-size: 1rem;
+            margin: 0;
         }
         
         .exercise-history-avg {
@@ -907,6 +912,17 @@
             padding: 8px 10px;
             cursor: pointer;
         }
+
+        /* Estilo para modais sobrepostas - CORREÇÃO DO PROBLEMA */
+        .day-options-modal-active {
+            z-index: 2001 !important;
+        }
+        
+        /* CORREÇÃO: Aumentar z-index da modal de edição do nome do dia */
+        #editDayNameModal {
+            z-index: 2001 !important;
+        }
+        
         @media (max-width: 500px) {
             .series-inputs {
                 grid-template-columns: 1fr !important;
@@ -1210,12 +1226,15 @@
             </div>
         </div>
 
-        <!-- MODAL: Opções do Dia (renomear/apagar) -->
+        <!-- MODAL: Opções do Dia (renomear/apagar) - MODIFICADA para ter apenas remoção -->
         <div id="dayOptionsModal" class="weight-modal">
             <div class="weight-modal-content">
-                <h2 class="modal-title">Gestão do Dia</h2>
-                <div class="form-group"><label class="form-label">Nome do Dia</label><input type="text" class="form-input" id="dayEditNameInput" placeholder="Ex: Segunda - Peito"></div>
-                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closeDayOptionsModal()">Cancelar</button><button class="modal-btn btn-danger" onclick="removeDay()">Remover Dia</button><button class="modal-btn btn-save" onclick="saveDayName()">Guardar</button></div>
+                <h2 class="modal-title">Remover Dia</h2>
+                <p>Tem a certeza que deseja remover o dia <span id="dayNameToDelete"></span>?</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeDayOptionsModal()">Cancelar</button>
+                    <button class="modal-btn btn-danger" onclick="removeDay()">Remover Dia</button>
+                </div>
             </div>
         </div>
 
@@ -1332,9 +1351,18 @@
                 <button class="btn accent" style="width:100%; margin-bottom:16px;" onclick="openAddExerciseToDayModalFromManagement()">Adicionar Exercício</button>
                 
                 <div class="day-management-footer">
-                    <button class="modal-btn btn-danger" onclick="removeDayFromManagement()">Remover Dia</button>
+                    <button class="modal-btn btn-danger" onclick="openDayOptionsModal()">Remover Dia</button>
                     <button class="modal-btn btn-save" onclick="saveDayManagement()">Guardar</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- NOVA MODAL: Editar Nome do Dia (semelhante à de editar nome do plano) - MOVIDA PARA DEPOIS DA MODAL DE GESTÃO DO DIA -->
+        <div id="editDayNameModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Editar Nome do Dia</h2>
+                <div class="form-group"><label class="form-label">Nome do Dia</label><input type="text" class="form-input" id="editDayNameInput" placeholder="Ex: Segunda - Peito"></div>
+                <div class="modal-buttons"><button class="modal-btn btn-cancel" onclick="closeEditDayNameModal()">Cancelar</button><button class="modal-btn btn-save" onclick="saveDayName()">Salvar</button></div>
             </div>
         </div>
 
@@ -1864,7 +1892,7 @@
                     mediaData[currentExercise][mediaTypeToChange] = e.target.result;
                     saveExerciseMediaData(mediaData);
                     updateExerciseMediaDisplay();
-                    showToast(mediaTypeToChange === 'image' ? 'Imagem alterada' : 'GIF alterado');
+                    showToast(mediaTypeToChange === 'image' , 'Imagem alterada' , 'GIF alterado');
                 }
                 reader.readAsDataURL(e.target.files[0]);
             }
@@ -1961,7 +1989,7 @@
             const plans=loadPlansData();
             const newPlan={ id:'plan-'+Date.now(), name, days:[] };
             plans.push(newPlan); savePlansData(plans);
-            closePlanModal(); renderPlans(); showToast('Plano criado com sucesso!');
+            closePlanModal(); renderPlans(); showToast('Plano criado with success!');
         }
         
         function savePlanChanges(){
@@ -1986,13 +2014,68 @@
 
         let currentDayForEdit = null;
         
-        function openDayOptionsModal(dayIndex){ currentDayForEdit=dayIndex; const m=document.getElementById('dayOptionsModal'); const input=document.getElementById('dayEditNameInput'); if(!currentPlanDetail||!currentPlanDetail.days||!currentPlanDetail.days[dayIndex]) return; input.value=currentPlanDetail.days[dayIndex].name||''; m.style.display='block'; }
+        function openDayOptionsModal(dayIndex){ 
+            currentDayForEdit=dayIndex; 
+            const m=document.getElementById('dayOptionsModal'); 
+            if(!currentPlanDetail||!currentPlanDetail.days||!currentPlanDetail.days[dayIndex]) return; 
+            const dayName = currentPlanDetail.days[dayIndex].name;
+            document.getElementById('dayNameToDelete').textContent = dayName;
+            m.style.display='block'; 
+        }
         
-        function closeDayOptionsModal(){ const m=document.getElementById('dayOptionsModal'); if(m) m.style.display='none'; }
+        function closeDayOptionsModal(){ 
+            document.getElementById('dayOptionsModal').style.display='none';
+        }
         
-        function saveDayName(){ if(currentDayForEdit===null||!currentPlanDetail) return; const v=(document.getElementById('dayEditNameInput').value||'').trim(); if(!v){alert('Insira um nome.'); return;} currentPlanDetail.days[currentDayForEdit].name=v; const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!=-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeDayOptionsModal(); showToast('Dia atualizado!'); }
+        function removeDay(){ 
+            if(currentDayForEdit===null||!currentPlanDetail) return; 
+            if(!confirm('Apagar este dia?')) return; 
+            currentPlanDetail.days.splice(currentDayForEdit,1); 
+            const plans=loadPlansData(); 
+            const i=plans.findIndex(p=>p.id===currentPlanDetail.id); 
+            if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} 
+            renderPlanDaysDetail(currentPlanDetail.days); 
+            closeDayOptionsModal(); 
+            showToast('Dia removido.'); 
+        }
+
+        // NOVA FUNÇÃO: Abrir modal para editar nome do dia
+        function openEditDayNameModal() {
+            if (currentDayManagementIndex === null || !currentPlanDetail) return;
+            document.getElementById('editDayNameInput').value = currentPlanDetail.days[currentDayManagementIndex].name;
+            document.getElementById('editDayNameModal').style.display = 'block';
+        }
         
-        function removeDay(){ if(currentDayForEdit===null||!currentPlanDetail) return; if(!confirm('Apagar este dia?')) return; currentPlanDetail.days.splice(currentDayForEdit,1); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeDayOptionsModal(); showToast('Dia removido.'); }
+        // NOVA FUNÇÃO: Fechar modal de editar nome do dia
+        function closeEditDayNameModal() {
+            document.getElementById('editDayNameModal').style.display = 'none';
+        }
+        
+        // NOVA FUNÇÃO: Salvar nome do dia (usando a nova modal)
+        function saveDayName() {
+            if (currentDayManagementIndex === null || !currentPlanDetail) return;
+            const v = document.getElementById('editDayNameInput').value.trim();
+            if (!v) {
+                alert('Insira um nome.');
+                return;
+            }
+            
+            currentPlanDetail.days[currentDayManagementIndex].name = v;
+            
+            const plans = loadPlansData();
+            const i = plans.findIndex(p => p.id === currentPlanDetail.id);
+            if (i !== -1) {
+                plans[i] = currentPlanDetail;
+                savePlansData(plans);
+            }
+            
+            // Atualizar a exibição
+            document.getElementById('dayManagementTitle').textContent = v;
+            renderPlanDaysDetail(currentPlanDetail.days);
+            
+            closeEditDayNameModal();
+            showToast('Dia atualizado!');
+        }
 
         let currentExerciseForEdit = null;
         
@@ -2224,14 +2307,7 @@
             renderPlanDaysDetail(currentPlanDetail.days);
             showToast('Dia removido!');
         }
-        
-        function openEditDayNameModal() {
-            // Preencher o input com o nome atual
-            document.getElementById('dayEditNameInput').value = currentPlanDetail.days[currentDayManagementIndex].name;
-            // Mostrar a modal de edição de nome
-            document.getElementById('dayOptionsModal').style.display = 'block';
-        }
-        
+
         // ===== Funções para a Página de Detalhes do Dia - ATUALIZADA conforme a imagem =====
         function openDayDetail(planId, dayIndex) {
             const plans = loadPlansData();
@@ -2322,10 +2398,10 @@
                 exerciseEl.className = 'workout-exercise-item';
                 exerciseEl.innerHTML = `
                     <div class="workout-exercise-info">
-                        <div class="workout-exercise-name">${exercise.name}</div>
-                        <div class="workout-exercise-details">${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
+                        <div class='workout-exercise-name'>${exercise.name}</div>
+                        <div class='workout-exercise-details'>${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
                     </div>
-                    <button class="workout-exercise-btn" onclick="startExercise(${index})" ${isCompleted ? 'disabled' : ''}>
+                    <button class='workout-exercise-btn' onclick="startExercise(${index})" ${isCompleted ? 'disabled' : ''}>
                         ${isCompleted ? 'Concluído' : 'Iniciar'}
                     </button>
                 `;
@@ -2556,6 +2632,7 @@
             
             document.getElementById('exerciseInfoContent').innerHTML = content;
             document.getElementById('exerciseInfoModal').style.display = 'block';
+            document.getElementById('dayOptionsModal').classList.remove('day-options-modal-active');
         }
         
         function closeExerciseInfo() {
@@ -2778,7 +2855,7 @@
             planListContainer.innerHTML = '';
 
             if (!plans.length) {
-                planListContainer.innerHTML = '<div class="card">Nenhum plano disponível. Crie um plano na página "Planos".</div>';
+                planListContainer.innerHTML = '<div class="card">Nenhum plano disponível. Crie a plano na página "Planos".</div>';
                 modal.style.display = 'block';
                 return;
             }
@@ -2909,7 +2986,8 @@
                 'weightModal', 'planSelectionModal', 'addDayModal', 'addExerciseToDayModal',
                 'editPlanNameModal', 'planModal', 'dayOptionsModal', 'editExerciseModal', 
                 'exerciseInfoModal', 'workoutDetailModal', 'addExerciseModal', 
-                'editExerciseNameModal', 'deleteExerciseModal'
+                'editExerciseNameModal', 'deleteExerciseModal', 'dayManagementModal',
+                'editDayNameModal'  // Adicionada a modal de edição do nome do dia
             ];
             
             modals.forEach(modalId => {
@@ -2941,34 +3019,17 @@
                 const p=loadPlansData().find(p=>p.id===sp); 
                 document.getElementById('selectedPlanLabel').textContent=p? p.name: '—'; 
                 
-                if (p) {
-                    renderSelectedPlanDays(p);
-                }
+                if (p) renderSelectedPlanDays(p);
             }
             // exercícios
             renderExercises();
             // planos
             renderPlans();
+            // treinos
+            renderWorkouts();
         }
-        
-        // Inicializar quando a página carregar
-        window.addEventListener('load', init);
-        
-        // Fechar menus de mídia ao rolar
-        window.addEventListener('scroll', function() {
-            document.getElementById('imageOptions').style.display = 'none';
-            document.getElementById('gifOptions').style.display = 'none';
-        });
-    </script>
-    <script>
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-            navigator.serviceWorker
-                .register("service-worker.js")
-                .then(() => console.log("Service Worker registado"))
-                .catch(err => console.log("Erro no SW:", err));
-            });
-        }
+
+        init();
     </script>
 </body>
 </html>
