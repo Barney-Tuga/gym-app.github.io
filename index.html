@@ -1327,19 +1327,34 @@
         }
 
         @media (max-width: 500px) {
-            .series-inputs {
-                grid-template-columns: 1fr !important;
-                gap: 8px;
+             .series-inputs {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 4px;
             }
             
             .series-item {
-                padding: 12px;
+                padding: 8px;
+                grid-template-columns: 1fr;
             }
             
             .input-group {
-                margin-bottom: 8px;
+                margin-bottom: 0;
             }
             
+            .input-label {
+                font-size: 0.7rem;
+            }
+            
+            .series-input {
+                padding: 6px 4px;
+                font-size: 0.8rem;
+            }
+            
+            /* Garantir que o cabeçalho da série ocupe a largura total */
+            .series-header {
+                grid-column: 1 / 3;
+                margin-bottom: 6px;
+            }
             
             .header .actions {
                 display: none;
@@ -4264,3 +4279,4 @@
     </script>
 </body>
 </html>
+
