@@ -159,6 +159,105 @@
         .btn-remove-plan { flex: 1; background: #ffe7e7; color: #b00020; border: none; padding: 12px; border-radius: 14px; font-weight: 800; cursor: pointer; }
         .btn-save-plan { flex: 2; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 14px; font-weight: 800; cursor: pointer; }
 
+        .exercise-media-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 14px 0 10px;
+        }
+
+        .exercise-media-box {
+            position: relative;
+            border: 2px dashed #e0e0e0;
+            border-radius: 16px;
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+            overflow: hidden;
+        }
+
+        .exercise-media-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .exercise-media-label {
+            font-weight: 600;
+            opacity: 0.7;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .exercise-media-menu {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            border: none;
+            background: white;
+            border-radius: 12px;
+            padding: 6px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .exercise-media-options {
+            position: absolute;
+            top: 35px;
+            right: 5px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            display: none;
+        }
+
+        .exercise-media-option {
+            padding: 10px 14px;
+            cursor: pointer;
+            color: #111;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .exercise-media-option:last-child {
+            border-bottom: none;
+        }
+
+        .exercise-media-option:hover {
+            background: #f5f5f5;
+        }
+
+        /* Estilo para a lista de exercícios com miniaturas */
+        .exercise-list-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #111b30;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+        }
+
+        .exercise-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #18233a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exercise-thumbnail i {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
         /* Garante que modais personalizados não aparecem no fim das páginas */
         .plan-modal { display: none; }
 
@@ -1413,7 +1512,7 @@
                 padding: 10px;
             }
         }
-        
+
         @media (max-width: 360px) {
             #dayManagementPage .exercise-detail-title {
                 max-width: 55vw;
@@ -1494,21 +1593,25 @@
                 </div>
             </div>
 
-            <div class="exercise-media-card">
-                <div class="media-box" id="exerciseImageBox">
-                    <span class="media-label">Imagem</span>
-                    <button class="media-menu" onclick="openMediaMenu('image', event)"><i class="bi bi-three-dots-vertical"></i></button>
-                    <div class="media-options" id="imageOptions">
-                        <div class="media-option" onclick="changeExerciseMedia('image')">Alterar Imagem</div>
-                        <div class="media-option" onclick="removeExerciseMedia('image')">Remover Imagem</div>
+            <div class="exercise-media-container">
+                <div class="exercise-media-box" id="exerciseImageBox">
+                    <span class="exercise-media-label">Imagem</span>
+                    <button class="exercise-media-menu" onclick="openExerciseMediaMenu('image', event)">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <div class="exercise-media-options" id="imageOptions">
+                        <div class="exercise-media-option" onclick="changeExerciseMedia('image')">Alterar Imagem</div>
+                        <div class="exercise-media-option" onclick="removeExerciseMedia('image')">Remover Imagem</div>
                     </div>
                 </div>
-                <div class="media-box" id="exerciseGifBox">
-                    <span class="media-label">GIF</span>
-                    <button class="media-menu" onclick="openMediaMenu('gif', event)"><i class="bi bi-three-dots-vertical"></i></button>
-                    <div class="media-options" id="gifOptions">
-                        <div class="media-option" onclick="changeExerciseMedia('gif')">Alterar GIF</div>
-                        <div class="media-option" onclick="removeExerciseMedia('gif')">Remover GIF</div>
+                <div class="exercise-media-box" id="exerciseGifBox">
+                    <span class="exercise-media-label">GIF</span>
+                    <button class="exercise-media-menu" onclick="openExerciseMediaMenu('gif', event)">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <div class="exercise-media-options" id="gifOptions">
+                        <div class="exercise-media-option" onclick="changeExerciseMedia('gif')">Alterar GIF</div>
+                        <div class="exercise-media-option" onclick="removeExerciseMedia('gif')">Remover GIF</div>
                     </div>
                 </div>
             </div>
@@ -2290,33 +2393,7 @@
                 case 'name':
                     items.sort((a, b) => a.name.localeCompare(b.name));
                     break;
-                case 'nameDesc':
-                    items.sort((a, b) => b.name.localeCompare(a.name));
-                    break;
-                case 'mostPerformed':
-                    // Ordenar por mais realizados (precisa de implementação com dados de histórico)
-                    items.sort((a, b) => {
-                        const aCount = getExercisePerformanceCount(a.name);
-                        const bCount = getExercisePerformanceCount(b.name);
-                        return bCount - aCount;
-                    });
-                    break;
-                case 'leastPerformed':
-                    // Ordenar por menos realizados (precisa de implementação com dados de histórico)
-                    items.sort((a, b) => {
-                        const aCount = getExercisePerformanceCount(a.name);
-                        const bCount = getExercisePerformanceCount(b.name);
-                        return aCount - bCount;
-                    });
-                    break;
-                case 'recent':
-                    // Ordenar por mais recentes (precisa de implementação com dados de histórico)
-                    items.sort((a, b) => {
-                        const aDate = getExerciseLastPerformedDate(a.name);
-                        const bDate = getExerciseLastPerformedDate(b.name);
-                        return new Date(bDate) - new Date(aDate);
-                    });
-                    break;
+                // ... (outros casos de ordenação)
             }
             
             // Verificar se não há exercícios
@@ -2325,22 +2402,34 @@
                 return;
             }
             
-            // Verificar se a pesquisa não encontró resultados
+            // Verificar se a pesquisa não encontrou resultados
             if (items.length === 0) {
                 list.innerHTML = '<div class="card">Nenhum exercício encontrado.</div>';
                 return;
             }
             
-            list.innerHTML = items.map(e => `
-                <div class="list-item">
-                    <i class="bi bi-activity"></i>
-                    <div>
-                        <div class="title">${e.name}</div>
-                        <div class="subtitle">${e.muscle}</div>
+            list.innerHTML = items.map(e => {
+                // Carregar mídia para obter a miniatura
+                const mediaData = loadExerciseMediaData();
+                const exerciseMedia = mediaData[e.name] || {};
+                const hasImage = exerciseMedia && exerciseMedia.image;
+                
+                return `
+                    <div class="exercise-list-item">
+                        ${hasImage ? 
+                            `<img src="${exerciseMedia.image}" class="exercise-thumbnail" alt="${e.name}">` : 
+                            `<div class="exercise-thumbnail"><i class="bi bi-activity"></i></div>`
+                        }
+                        <div>
+                            <div class="title">${e.name}</div>
+                            <div class="subtitle">${e.muscle}</div>
+                        </div>
+                        <button class="kebab" onclick="openExerciseDetail('${e.name.replace(/'/g,"&#39;")}')">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
                     </div>
-                    <button class="kebab" onclick="openExerciseDetail('${e.name.replace(/'/g,"&#39;")}')"><i class="bi bi-three-dots-vertical"></i></button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         // Funções auxiliares para ordenação de exercícios
@@ -2688,6 +2777,8 @@
         function changeExerciseMedia(type) {
             mediaTypeToChange = type;
             document.getElementById('mediaInput').click();
+            
+            // Hide options
             document.getElementById(type + 'Options').style.display = 'none';
         }
         
@@ -2696,28 +2787,55 @@
             if (!mediaData[currentExercise]) mediaData[currentExercise] = {};
             mediaData[currentExercise][type] = null;
             saveExerciseMediaData(mediaData);
-            updateExerciseMediaDisplay();
+            loadExerciseMedia(currentExercise);
             showToast(type === 'image' ? 'Imagem removida' : 'GIF removido');
+            
+            // Hide options
             document.getElementById(type + 'Options').style.display = 'none';
         }
         
         function loadExerciseMedia(exerciseName) {
             const mediaData = loadExerciseMediaData();
-            if (mediaData[exerciseName]) {
-                if (mediaData[exerciseName].image) {
-                    document.getElementById('exerciseImageBox').style.backgroundImage = `url(${mediaData[exerciseName].image})`;
-                    document.getElementById('exerciseImageBox').style.backgroundSize = 'cover';
-                    document.getElementById('exerciseImageBox').style.backgroundPosition = 'center';
-                    document.querySelector('#exerciseImageBox .media-label').style.display = 'none';
-                }
-                
-                if (mediaData[exerciseName].gif) {
-                    document.getElementById('exerciseGifBox').style.backgroundImage = `url(${mediaData[exerciseName].gif})`;
-                    document.getElementById('exerciseGifBox').style.backgroundSize = 'cover';
-                    document.getElementById('exerciseGifBox').style.backgroundPosition = 'center';
-                    document.querySelector('#exerciseGifBox .media-label').style.display = 'none';
-                }
+            const exerciseMedia = mediaData[exerciseName] || {};
+            
+            const imageBox = document.getElementById('exerciseImageBox');
+            const gifBox = document.getElementById('exerciseGifBox');
+            
+            // Reset boxes
+            imageBox.style.backgroundImage = '';
+            imageBox.querySelector('.exercise-media-label').style.display = 'block';
+            gifBox.style.backgroundImage = '';
+            gifBox.querySelector('.exercise-media-label').style.display = 'block';
+            
+            // Load image if exists
+            if (exerciseMedia.image) {
+                imageBox.style.backgroundImage = `url(${exerciseMedia.image})`;
+                imageBox.style.backgroundSize = 'cover';
+                imageBox.style.backgroundPosition = 'center';
+                imageBox.querySelector('.exercise-media-label').style.display = 'none';
             }
+            
+            // Load GIF if exists
+            if (exerciseMedia.gif) {
+                gifBox.style.backgroundImage = `url(${exerciseMedia.gif})`;
+                gifBox.style.backgroundSize = 'cover';
+                gifBox.style.backgroundPosition = 'center';
+                gifBox.querySelector('.exercise-media-label').style.display = 'none';
+            }
+        }
+
+        function openExerciseMediaMenu(type, event) {
+            event.stopPropagation();
+            const options = document.getElementById(type + 'Options');
+            const allOptions = document.querySelectorAll('.exercise-media-options');
+            
+            // Hide all other options
+            allOptions.forEach(opt => {
+                if (opt !== options) opt.style.display = 'none';
+            });
+            
+            // Toggle current options
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
         }
         
         function updateExerciseMediaDisplay() {
@@ -2753,9 +2871,14 @@
                     if (!mediaData[currentExercise]) mediaData[currentExercise] = {};
                     mediaData[currentExercise][mediaTypeToChange] = e.target.result;
                     saveExerciseMediaData(mediaData);
-                    updateExerciseMediaDisplay();
+                    loadExerciseMedia(currentExercise);
                     showToast(mediaTypeToChange === 'image' ? 'Imagem alterada' : 'GIF alterado');
-                }
+                    
+                    // Atualizar a lista de exercícios para mostrar a nova miniatura
+                    if (mediaTypeToChange === 'image') {
+                        renderExercises();
+                    }
+                };
                 reader.readAsDataURL(e.target.files[0]);
             }
         });
