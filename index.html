@@ -137,9 +137,9 @@
         }
 
         /* Página EXERCÍCIO - Detalhes */
-        .exercise-detail-header { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+        .exercise-detail-header { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; width: 100%; }
         .back-button { border: none; background: #18233a; color: #cfd7ff; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
-        .exercise-detail-title { margin: 0; }
+        .exercise-detail-title { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; padding-right: 8px; /* Espaço para evitar que encoste no botão */}
         .edit-exercise-button { border: none; background: #f5f5f5; border-radius: 12px; padding: 8px 12px; font-size: 1.1rem; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .edit-exercise-button i { pointer-events: none; }
         .exercise-media-card { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0 10px; }
@@ -905,6 +905,7 @@
         .exercise-detail-header-buttons {
             display: flex;
             gap: 8px;
+            flex-shrink: 0; /* Impede que os botões diminuam */
         }
 
         /* NOVOS ESTILOS PARA A MODAL DE GESTÃO DO DIA */
@@ -1299,6 +1300,14 @@
             line-height: 1.5;
         }
 
+        #dayManagementPage .exercise-detail-header {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+
+        #dayManagementPage .exercise-detail-title {
+            max-width: 65vw; /* Limita a largura máxima para garantir espaço para os botões */
+        }
+
         /* Adicionar estes estilos para destacar objetivos atualizados */
         .plan-updated {
             animation: highlightUpdate 2s ease;
@@ -1402,6 +1411,22 @@
             /* Ajustar o padding geral do card para economizar espaço */
             .card {
                 padding: 10px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            #dayManagementPage .exercise-detail-title {
+                max-width: 55vw;
+            }
+            
+            .exercise-detail-header-buttons {
+                gap: 4px;
+            }
+            
+            .edit-exercise-button, 
+            .delete-exercise-button {
+                padding: 6px 8px;
+                font-size: 1rem;
             }
         }
     </style>
