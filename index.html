@@ -1360,6 +1360,50 @@
                 display: none;
             }
         }
+        /* Adicionar estas regras CSS para corrigir o layout em ecrãs pequenos */
+        @media (max-width: 430px) {
+            .series-item {
+                padding: 6px;
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+            
+            .series-inputs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 4px;
+                width: 100%;
+            }
+            
+            .input-group {
+                margin-bottom: 0;
+                min-width: 0; /* Permite que os inputs se ajustem melhor */
+            }
+            
+            .input-label {
+                font-size: 0.65rem;
+                margin-bottom: 2px;
+            }
+            
+            .series-input {
+                padding: 4px 4px;
+                font-size: 0.75rem;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* Garantir que o cabeçalho da série ocupe a largura total */
+            .series-header {
+                grid-column: 1 / 3;
+                margin-bottom: 4px;
+                font-size: 0.75rem;
+            }
+            
+            /* Ajustar o padding geral do card para economizar espaço */
+            .card {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
