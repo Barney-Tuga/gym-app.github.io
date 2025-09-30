@@ -93,24 +93,24 @@
         .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
         .nav-item.active { opacity: 1; color: #fff; }
 
-        /* TOAST - Alterado para topo */
+        /* TOAST - Alterado para fora do ecrã inicialmente */
         .toast { 
             position: fixed; 
             left: 50%; 
             transform: translateX(-50%); 
-            top: 70px; 
+            top: -100px; /* Inicialmente fora do ecrã */
             background: #1f2937; 
             color: #fff; 
             padding: 10px 14px; 
             border-radius: 10px;
             opacity: 0; 
-            transition: opacity .25s ease, transform .3s ease; 
+            transition: all .3s ease; 
             z-index: 50;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .toast.show { 
             opacity: 1;
-            transform: translateX(-50%) translateY(10px);
+            top: 70px; /* Posição quando mostra */
         }
 
         /* MODAIS */
@@ -1413,6 +1413,14 @@
             border-left: 4px solid var(--primary) !important;
         }
 
+        .plan-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .plan-options-menu {
+            backdrop-filter: blur(10px);
+        }
+
         @keyframes highlightUpdate {
             0% { background-color: rgba(46, 125, 50, 0.3); }
             100% { background-color: transparent; }
@@ -1432,6 +1440,106 @@
             0% { opacity: 0.7; }
             50% { opacity: 1; }
             100% { opacity: 0.7; }
+        }
+
+        /* NOVOS ESTILOS PARA AS MODIFICAÇÕES SOLICITADAS */
+        
+        /* Modal para mostrar detalhes do exercício concluído */
+        .exercise-completed-modal-content {
+            max-width: 500px;
+            margin: 40px auto;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            position: relative;
+        }
+        
+        .exercise-completed-details {
+            margin: 16px 0;
+        }
+        
+        .exercise-completed-set {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .exercise-completed-set:last-child {
+            border-bottom: none;
+        }
+        
+        .exercise-completed-target {
+            margin: 16px 0;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .target-updated {
+            background: rgba(46,125,50,0.2);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .target-old {
+            color: var(--muted);
+            text-decoration: line-through;
+            margin-right: 8px;
+        }
+        
+        .target-new {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        /* Estilo para exercícios concluídos na workoutPage */
+        .workout-exercise-completed {
+            background: rgba(46,125,50,0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .workout-exercise-options-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text);
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+        
+        /* Modal de confirmação para terminar exercício com séries em falta */
+        #confirmFinishExerciseModal .weight-modal-content,
+        #confirmFinishWorkoutModal .weight-modal-content {
+            max-width: 400px;
+            background: var(--card);
+            color: var(--text);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #confirmFinishExerciseModal p,
+        #confirmFinishWorkoutModal p {
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+        
+        .missing-exercises-list {
+            text-align: left;
+            margin: 16px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .missing-exercise-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .missing-exercise-item:last-child {
+            border-bottom: none;
         }
 
         @media (max-width: 500px) {
@@ -1756,7 +1864,7 @@
 
             <div id="workoutExercisesList"></div>
 
-            <button id="finishWorkoutBtn" class="finish-workout-btn" style="display:none;" onclick="finishWorkout()">Terminar Treino</button>
+            <button id="finishWorkoutBtn" class="finish-workout-btn" onclick="finishWorkout()">Terminar Treino</button>
         </div>
 
         <!-- Página de execução do exercício - MODIFICADA conforme solicitado -->
@@ -1952,7 +2060,9 @@
             <div class="weight-modal-content">
                 <h2 class="modal-title">Adicionar Dia</h2>
                 <div class="form-group"><label class="form-label">Nome do Dia</label><input id="dayNameInput" class="form-input" placeholder="Ex: Segunda-feira - Peito"></div>
-                <div class="modal-buttons><button class="modal-btn btn-cancel" onclick="closeAddDayModal()">Cancelar</button><button class="modal-btn btn-save" onclick="saveDay()">Salvar</button></div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeAddDayModal()">Cancelar</button>
+                    <button class="modal-btn btn-save" onclick="saveDay()">Salvar</button></div>
             </div>
         </div>
 
@@ -2152,6 +2262,50 @@
                 <div class="modal-buttons">
                     <button class="modal-btn btn-cancel" onclick="closeConfirmExitModal()">Cancelar</button>
                     <button class="modal-btn btn-danger" onclick="confirmExitWorkout()">Sair do Treino</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOVOS MODAIS PARA AS MODIFICAÇÕES SOLICITADAS -->
+        
+        <!-- MODAL: Detalhes do Exercício Concluído -->
+        <div id="exerciseCompletedModal" class="weight-modal">
+            <div class="exercise-completed-modal-content">
+                <h2 class="modal-title" id="completedExerciseTitle">Exercício Concluído</h2>
+                <div id="completedExerciseContent">
+                    <!-- Conteúdo será preenchido via JavaScript -->
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-save" onclick="closeExerciseCompletedModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Confirmar Terminar Exercício com Séries em Falta -->
+        <div id="confirmFinishExerciseModal" class="weight-modal">
+            <div class="weight-modal-content" style="background: var(--card); color: var(--text);">
+                <h2 class="modal-title">Terminar Exercício</h2>
+                <p>Existem séries não preenchidas. Deseja terminar mesmo assim?</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">As séries em falta serão preenchidas com "0".</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeConfirmFinishExerciseModal()">Cancelar</button>
+                    <button class="modal-btn btn-danger" onclick="confirmFinishExercise()">Terminar Exercício</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Confirmar Terminar Treino com Exercícios em Falta -->
+        <div id="confirmFinishWorkoutModal" class="weight-modal">
+            <div class="weight-modal-content" style="background: var(--card); color: var(--text);">
+                <h2 class="modal-title">Terminar Treino</h2>
+                <p>Existem exercícios não terminados. Deseja terminar mesmo assim?</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Os exercícios em falta serão preenchidos com "0".</p>
+                <div id="missingExercisesList" class="missing-exercises-list">
+                    <!-- Lista de exercícios em falta será preenchida via JavaScript -->
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeConfirmFinishWorkoutModal()">Cancelar</button>
+                    <button class="modal-btn btn-danger" onclick="confirmFinishWorkout()">Terminar Treino</button>
                 </div>
             </div>
         </div>
@@ -2759,442 +2913,118 @@
         }
         
         function saveExerciseNotes(){ const data=loadExercisesData(); if(!data[currentExercise]) data[currentExercise]={notes:'',history:[]}; data[currentExercise].notes=document.getElementById('exerciseNotes').value; saveExercisesData(data); showToast('Notas guardadas.'); }
-
-        // Funções para gerir mídia dos exercícios
-        function openMediaMenu(type, event) {
-            event.stopPropagation();
-            const options = document.getElementById(type + 'Options');
-            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        
+        // MODAL: Editar nome do exercício (substitui o prompt)
+        function openEditExerciseNameModal(){
+            document.getElementById('editExerciseName').value = currentExercise;
+            document.getElementById('editExerciseNameModal').style.display='block';
+        }
+        
+        function closeEditExerciseNameModal(){
+            document.getElementById('editExerciseNameModal').style.display='none';
+        }
+        
+        function saveExerciseName(){
+            const newName = document.getElementById('editExerciseName').value.trim();
             
-            // Fechar outros menus abertos
-            if (type === 'image') {
-                document.getElementById('gifOptions').style.display = 'none';
-            } else {
-                document.getElementById('imageOptions').style.display = 'none';
-            }
-        }
-        
-        function changeExerciseMedia(type) {
-            mediaTypeToChange = type;
-            document.getElementById('mediaInput').click();
-            
-            // Hide options
-            document.getElementById(type + 'Options').style.display = 'none';
-        }
-        
-        function removeExerciseMedia(type) {
-            const mediaData = loadExerciseMediaData();
-            if (!mediaData[currentExercise]) mediaData[currentExercise] = {};
-            mediaData[currentExercise][type] = null;
-            saveExerciseMediaData(mediaData);
-            loadExerciseMedia(currentExercise);
-            showToast(type === 'image' ? 'Imagem removida' : 'GIF removido');
-            
-            // Hide options
-            document.getElementById(type + 'Options').style.display = 'none';
-        }
-        
-        function loadExerciseMedia(exerciseName) {
-            const mediaData = loadExerciseMediaData();
-            const exerciseMedia = mediaData[exerciseName] || {};
-            
-            const imageBox = document.getElementById('exerciseImageBox');
-            const gifBox = document.getElementById('exerciseGifBox');
-            
-            // Reset boxes
-            imageBox.style.backgroundImage = '';
-            imageBox.querySelector('.exercise-media-label').style.display = 'block';
-            gifBox.style.backgroundImage = '';
-            gifBox.querySelector('.exercise-media-label').style.display = 'block';
-            
-            // Load image if exists
-            if (exerciseMedia.image) {
-                imageBox.style.backgroundImage = `url(${exerciseMedia.image})`;
-                imageBox.style.backgroundSize = 'cover';
-                imageBox.style.backgroundPosition = 'center';
-                imageBox.querySelector('.exercise-media-label').style.display = 'none';
-            }
-            
-            // Load GIF if exists
-            if (exerciseMedia.gif) {
-                gifBox.style.backgroundImage = `url(${exerciseMedia.gif})`;
-                gifBox.style.backgroundSize = 'cover';
-                gifBox.style.backgroundPosition = 'center';
-                gifBox.querySelector('.exercise-media-label').style.display = 'none';
-            }
-        }
-
-        function openExerciseMediaMenu(type, event) {
-            event.stopPropagation();
-            const options = document.getElementById(type + 'Options');
-            const allOptions = document.querySelectorAll('.exercise-media-options');
-            
-            // Hide all other options
-            allOptions.forEach(opt => {
-                if (opt !== options) opt.style.display = 'none';
-            });
-            
-            // Toggle current options
-            options.style.display = options.style.display === 'block' ? 'none' : 'block';
-        }
-        
-        function updateExerciseMediaDisplay() {
-            const mediaData = loadExerciseMediaData();
-            if (mediaData[currentExercise]) {
-                if (mediaData[currentExercise].image) {
-                    document.getElementById('exerciseImageBox').style.backgroundImage = `url(${mediaData[currentExercise].image})`;
-                    document.getElementById('exerciseImageBox').style.backgroundSize = 'cover';
-                    document.getElementById('exerciseImageBox').style.backgroundPosition = 'center';
-                    document.querySelector('#exerciseImageBox .media-label').style.display = 'none';
-                } else {
-                    document.getElementById('exerciseImageBox').style.backgroundImage = '';
-                    document.querySelector('#exerciseImageBox .media-label').style.display = 'block';
-                }
-                
-                if (mediaData[currentExercise].gif) {
-                    document.getElementById('exerciseGifBox').style.backgroundImage = `url(${mediaData[currentExercise].gif})`;
-                    document.getElementById('exerciseGifBox').style.backgroundSize = 'cover';
-                    document.getElementById('exerciseGifBox').style.backgroundPosition = 'center';
-                    document.querySelector('#exerciseGifBox .media-label').style.display = 'none';
-                } else {
-                    document.getElementById('exerciseGifBox').style.backgroundImage = '';
-                    document.querySelector('#exerciseGifBox .media-label').style.display = 'block';
-                }
-            }
-        }
-        
-        document.getElementById('mediaInput').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const mediaData = loadExerciseMediaData();
-                    if (!mediaData[currentExercise]) mediaData[currentExercise] = {};
-                    mediaData[currentExercise][mediaTypeToChange] = e.target.result;
-                    saveExerciseMediaData(mediaData);
-                    loadExerciseMedia(currentExercise);
-                    showToast(mediaTypeToChange === 'image' ? 'Imagem alterada' : 'GIF alterado');
-                    
-                    // Atualizar a lista de exercícios para mostrar a nova miniatura
-                    if (mediaTypeToChange === 'image') {
-                        renderExercises();
-                    }
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-
-        // ===== Funções para a Página de Planos =====
-        function renderPlans(){
-            const plans = loadPlansData();
-            const el = document.getElementById('plansList');
-            if (!plans.length){ el.innerHTML = '<div class="card">Sem planos ainda.</div>'; return; }
-            el.innerHTML = plans.map(p=>`
-                <div class="list-item">
-                    <i class="bi bi-calendar-week"></i>
-                    <div>
-                        <div class="title">${p.name}</div>
-                        <div class="subtitle">${(p.days||[]).length} dias</div>
-                    </div>
-                    <button class="kebab" onclick="openPlanDetail('${p.id}')"><i class="bi bi-three-dots-vertical"></i></button>
-                </div>
-            `).join('');
-        }
-
-        function openPlanDetail(planId){
-            const plans=loadPlansData();
-            const plan=plans.find(p=>p.id===planId);
-            if(!plan) return;
-            currentPlanDetail = JSON.parse(JSON.stringify(plan));
-            document.getElementById('planDetailTitle').textContent = currentPlanDetail.name;
-            renderPlanDaysDetail(currentPlanDetail.days);
-            showPage('planDetailPage');
-        }
-        
-        function closePlanDetail(){
-            showPage('plansPage');
-        }
-
-        function openEditPlanNameModal(){
-            document.getElementById('editPlanNameModal').style.display='block';
-            document.getElementById('editPlanNameInput').value=currentPlanDetail? currentPlanDetail.name: ''
-        }
-        
-        function closeEditPlanNameModal(){ document.getElementById('editPlanNameModal').style.display='none'; }
-        
-        function savePlanName(){ const v=document.getElementById('editPlanNameInput').value.trim(); if(!v){alert('Insira um nome.');return;} currentPlanDetail.name=v; const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} document.getElementById('planDetailTitle').textContent=v; renderPlans(); closeEditPlanNameModal(); showToast('Nome do plano atualizado.'); }
-
-        function openAddDayModal(){ document.getElementById('addDayModal').style.display='block'; document.getElementById('dayNameInput').value=''; }
-        
-        function closeAddDayModal(){ document.getElementById('addDayModal').style.display='none'; }
-        
-        function saveDay(){ const n=document.getElementById('dayNameInput').value.trim(); if(!n){alert('Insira um nome.');return;} if(!currentPlanDetail.days) currentPlanDetail.days=[]; currentPlanDetail.days.push({ name:n, exercises:[] }); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeAddDayModal(); showToast('Dia adicionado.'); }
-
-        // MODAL: Adicionar exercício ao dia (FUNÇÕES CORRIGIDAS)
-        function openAddExerciseToDayModal(dayIndex){
-            currentDayForExercise = dayIndex;
-            const sel = document.getElementById('exerciseSelect');
-            sel.innerHTML = '<option value="">Selecione um exercício</option>' + availableExercises.map(e=>`<option value="${e.name}">${e.name}</option>`).join('');
-            document.getElementById('exerciseSets').value = '';
-            document.getElementById('exerciseReps').value = '';
-            document.getElementById('exerciseWeight').value = '';
-            document.getElementById('addExerciseToDayModal').style.display='block';
-        }
-        
-        function closeAddExerciseToDayModal(){
-            document.getElementById('addExerciseToDayModal').style.display='none';
-        }
-        
-        function saveExerciseToDay(){
-            const exerciseName = document.getElementById('exerciseSelect').value;
-            const sets = document.getElementById('exerciseSets').value;
-            const reps = document.getElementById('exerciseReps').value;
-            const weight = document.getElementById('exerciseWeight').value;
-            if(!exerciseName || !sets || !reps){ alert('Preencha os campos obrigatórios.'); return; }
-            if(!currentPlanDetail || currentDayForExercise===null){ showToast('Erro: Plano/dia não carregado.'); return; }
-            if(!currentPlanDetail.days[currentDayForExercise].exercises) currentPlanDetail.days[currentDayForExercise].exercises=[];
-            currentPlanDetail.days[currentDayForExercise].exercises.push({ name: exerciseName, sets, reps, weight });
-            const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!=-1){plans[i]=currentPlanDetail; savePlansData(plans);}
-            
-            // Refresh the day management page if it's currently open
-            if (currentPage === 'dayManagementPage' && currentDayManagementIndex === currentDayForExercise) {
-                renderDayManagementPageExercises(currentPlanDetail.days[currentDayManagementIndex].exercises);
-            }
-            
-            closeAddExerciseToDayModal(); 
-            showToast('Exercício adicionado.'); 
-        }
-
-        function openPlanModal(){
-            const m=document.getElementById('planModal');
-            if(!m) return;
-            document.getElementById('modalPlanTitle').textContent='Criar Plano de Treino';
-            document.getElementById('planNameInput').value='';
-            m.style.display='block';
-        }
-        
-        function closePlanModal(){
-            const m=document.getElementById('planModal');
-            if(m) m.style.display='none';
-        }
-        
-        function savePlan(){
-            const name=(document.getElementById('planNameInput').value||'').trim();
-            if(!name){alert('Insira o nome do plano.');return;}
-            const plans=loadPlansData();
-            const newPlan={ id:'plan-'+Date.now(), name, days:[] };
-            plans.push(newPlan); savePlansData(plans);
-            closePlanModal(); renderPlans(); showToast('Plano criado with success!');
-        }
-        
-        function savePlanChanges(){
-            if(!currentPlanDetail) return;
-            const plans=loadPlansData();
-            const i=plans.findIndex(p=>p.id===currentPlanDetail.id);
-            if(i!==-1){plans[i]=currentPlanDetail;
-                savePlansData(plans);
-                renderPlans(); showToast('Plano guardado!');}
-        }
-        
-        function openDeletePlanConfirmModal() {
-            document.getElementById('deletePlanConfirmModal').style.display = 'block';
-        }
-
-        function closeDeletePlanConfirmModal() {
-            document.getElementById('deletePlanConfirmModal').style.display = 'none';
-        }
-
-        function confirmRemovePlan() {
-            if(!currentPlanDetail) return;
-            
-            let plans=loadPlansData();
-            plans=plans.filter(p=>p.id!==currentPlanDetail.id);
-            savePlansData(plans); 
-            currentPlanDetail=null;
-            closeDeletePlanConfirmModal();
-            closePlanDetail();
-            renderPlans();
-            showToast('Plano removido.');
-        }
-
-        function removePlan() {
-            openDeletePlanConfirmModal();
-        }
-
-        let currentDayForEdit = null;
-        
-        function openDayOptionsModal(dayIndex){ 
-            currentDayForEdit=dayIndex; 
-            const m=document.getElementById('dayOptionsModal'); 
-            if(!currentPlanDetail||!currentPlanDetail.days||!currentPlanDetail.days[dayIndex]) return; 
-            const dayName = currentPlanDetail.days[dayIndex].name;
-            document.getElementById('dayNameToDelete').textContent = dayName;
-            m.style.display='block'; 
-        }
-        
-        function closeDayOptionsModal(){ 
-            document.getElementById('dayOptionsModal').style.display='none';
-        }
-        
-        function removeDay(){ 
-            if(currentDayForEdit===null||!currentPlanDetail) return; 
-            if(!confirm('Apagar este dia?')) return; 
-            currentPlanDetail.days.splice(currentDayForEdit,1); 
-            const plans=loadPlansData(); 
-            const i=plans.findIndex(p=>p.id===currentPlanDetail.id); 
-            if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} 
-            renderPlanDaysDetail(currentPlanDetail.days); 
-            closeDayOptionsModal(); 
-            showToast('Dia removido.'); 
-        }
-
-        // NOVA FUNÇÃO: Abrir modal para editar nome do dia
-        function openEditDayNameModal() {
-            if (currentDayManagementIndex === null || !currentPlanDetail) return;
-            document.getElementById('editDayNameInput').value = currentPlanDetail.days[currentDayManagementIndex].name;
-            document.getElementById('editDayNameModal').style.display = 'block';
-        }
-        
-        // NOVA FUNÇÃO: Fechar modal de editar nome do dia
-        function closeEditDayNameModal() {
-            document.getElementById('editDayNameModal').style.display = 'none';
-        }
-        
-        // NOVA FUNÇÃO: Salvar nome do dia (usando a nova modal)
-        function saveDayName() {
-            if (currentDayManagementIndex === null || !currentPlanDetail) return;
-            const v = document.getElementById('editDayNameInput').value.trim();
-            if (!v) {
-                alert('Insira um nome.');
+            if (!newName) {
+                alert('Por favor, insira um nome para o exercício.');
                 return;
             }
             
-            currentPlanDetail.days[currentDayManagementIndex].name = v;
-            
-            const plans = loadPlansData();
-            const i = plans.findIndex(p => p.id === currentPlanDetail.id);
-            if (i !== -1) {
-                plans[i] = currentPlanDetail;
-                savePlansData(plans);
-            }
-            
-            // Atualizar a exibição
-            document.getElementById('dayManagementTitle').textContent = v;
-            renderPlanDaysDetail(currentPlanDetail.days);
-            
-            closeEditDayNameModal();
-            showToast('Dia atualizado!');
-        }
-
-        let currentExerciseForEdit = null;
-        
-        function openEditExerciseModal(d,e){ 
-            currentDayForEdit=d; 
-            currentExerciseForEdit=e; 
-            const ex=currentPlanDetail&&currentPlanDetail.days&&currentPlanDetail.days[d]&&currentPlanDetail.days[d].exercises? currentPlanDetail.days[d].exercises[e]: null; 
-            if(!ex) return; 
-            
-            // Mostrar o nome do exercício (não editável)
-            document.getElementById('editExerciseNameStatic').textContent = ex.name || '';
-            document.getElementById('editExerciseSets').value=ex.sets||''; 
-            document.getElementById('editExerciseReps').value=ex.reps||''; 
-            document.getElementById('editExerciseWeight').value=ex.weight||''; 
-            document.getElementById('editExerciseModal').style.display='block'; 
-        }
-        
-        function closeEditExerciseModal(){ document.getElementById('editExerciseModal').style.display='none'; }
-        
-        function saveEditedExercise(){ 
-            if(currentDayForEdit===null||currentExerciseForEdit===null) return; 
-            const sets=document.getElementById('editExerciseSets').value; 
-            const reps=document.getElementById('editExerciseReps').value; 
-            const weight=document.getElementById('editExerciseWeight').value; 
-            if(!sets||!reps){alert('Preencha os campos.');return;} 
-            
-            // Manter o nome original do exercício
-            const name = currentPlanDetail.days[currentDayForEdit].exercises[currentExerciseForEdit].name;
-            
-            currentPlanDetail.days[currentDayForEdit].exercises[currentExerciseForEdit]={ name, sets, reps, weight }; 
-            const plans=loadPlansData(); 
-            const i=plans.findIndex(p=>p.id===currentPlanDetail.id); 
-            if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} 
-            renderPlanDaysDetail(currentPlanDetail.days); 
-            closeEditExerciseModal(); 
-            showToast('Exercício atualizado!'); 
-        }
-        
-        function removeExerciseFromDay(){ if(currentDayForEdit===null||currentExerciseForEdit===null) return; if(!confirm('Remover este exercício?')) return; currentPlanDetail.days[currentDayForEdit].exercises.splice(currentExerciseForEdit,1); const plans=loadPlansData(); const i=plans.findIndex(p=>p.id===currentPlanDetail.id); if(i!==-1){plans[i]=currentPlanDetail; savePlansData(plans);} renderPlanDaysDetail(currentPlanDetail.days); closeEditExerciseModal(); showToast('Exercício removido.'); }
-
-        // MODAL: Editar nome do exercício (substitui o prompt)
-        function openEditExerciseNameModal() {
-            document.getElementById('editExerciseName').value = currentExercise;
-            document.getElementById('editExerciseNameModal').style.display = 'block';
-        }
-        
-        function closeEditExerciseNameModal() {
-            document.getElementById('editExerciseNameModal').style.display = 'none';
-        }
-        
-        function saveExerciseName() {
-            const novo = document.getElementById('editExerciseName').value.trim();
-            if (!novo || novo === currentExercise) {
+            if (newName === currentExercise) {
                 closeEditExerciseNameModal();
                 return;
             }
             
-            const data = loadExercisesData();
-            if (data[novo]) {
+            // Verificar se já existe
+            if (availableExercises.some(e => e.name.toLowerCase() === newName.toLowerCase())) {
                 alert('Já existe um exercício com esse nome.');
                 return;
             }
             
-            data[novo] = data[currentExercise] || { notes: '', sets: [], history: [] };
-            delete data[currentExercise];
-            saveExercisesData(data);
-            
-            // Atualizar no array de exercícios disponíveis
-            const idx = availableExercises.findIndex(e => e.name === currentExercise);
-            if (idx !== -1) {
-                availableExercises[idx].name = novo;
-            } else {
-                availableExercises.push({ name: novo, muscle: 'Outro', type: 'other' });
+            // Atualizar nos exercícios disponíveis
+            const index = availableExercises.findIndex(e => e.name === currentExercise);
+            if (index !== -1) {
+                availableExercises[index].name = newName;
+                saveAvailableExercises(availableExercises);
             }
-            saveAvailableExercises(availableExercises); // Salvar no localStorage
             
+            // Atualizar nos dados dos exercícios
+            const data = loadExercisesData();
+            if (data[currentExercise]) {
+                data[newName] = data[currentExercise];
+                delete data[currentExercise];
+                saveExercisesData(data);
+            }
+            
+            // Atualizar nos planos
             const plans = loadPlansData();
-            plans.forEach(p => (p.days || []).forEach(d => (d.exercises || []).forEach(ex => {
-                if (ex.name === currentExercise) ex.name = novo;
-            })));
-            savePlansData(plans);
+            let updatedPlans = false;
+            plans.forEach(plan => {
+                plan.days.forEach(day => {
+                    day.exercises.forEach(exercise => {
+                        if (exercise.name === currentExercise) {
+                            exercise.name = newName;
+                            updatedPlans = true;
+                        }
+                    });
+                });
+            });
+            if (updatedPlans) {
+                savePlansData(plans);
+            }
             
-            currentExercise = novo;
-            document.getElementById('exerciseDetailTitle').textContent = novo;
+            // Atualizar nos treinos
+            const workouts = loadWorkoutsData();
+            let updatedWorkouts = false;
+            workouts.forEach(workout => {
+                workout.exercises.forEach(exercise => {
+                    if (exercise.name === currentExercise) {
+                        exercise.name = newName;
+                        updatedWorkouts = true;
+                    }
+                });
+            });
+            if (updatedWorkouts) {
+                saveWorkoutsData(workouts);
+            }
+            
+            // Atualizar mídia
+            const mediaData = loadExerciseMediaData();
+            if (mediaData[currentExercise]) {
+                mediaData[newName] = mediaData[currentExercise];
+                delete mediaData[currentExercise];
+                saveExerciseMediaData(mediaData);
+            }
+            
+            currentExercise = newName;
+            document.getElementById('exerciseDetailTitle').textContent = newName;
+            
             renderExercises();
-            if (currentPlanDetail) renderPlanDaysDetail(currentPlanDetail.days);
             closeEditExerciseNameModal();
-            showToast('Nome do exercício atualizado!');
+            showToast('Nome do exercício alterado.');
         }
         
-        // MODAL: Remover exercício
-        function openDeleteExerciseModal() {
+        // MODAL: Confirmar remoção do exercício
+        function openDeleteExerciseModal(){
             document.getElementById('exerciseNameToDelete').textContent = currentExercise;
-            document.getElementById('deleteExerciseModal').style.display = 'block';
+            document.getElementById('deleteExerciseModal').style.display='block';
         }
         
-        function closeDeleteExerciseModal() {
-            document.getElementById('deleteExerciseModal').style.display = 'none';
+        function closeDeleteExerciseModal(){
+            document.getElementById('deleteExerciseModal').style.display='none';
         }
         
-        function deleteExercise() {
-            if (!currentExercise) return;
-            
+        function deleteExercise(){
             // Remover dos exercícios disponíveis
             const index = availableExercises.findIndex(e => e.name === currentExercise);
             if (index !== -1) {
                 availableExercises.splice(index, 1);
-                saveAvailableExercises(availableExercises); // Salvar no localStorage
+                saveAvailableExercises(availableExercises);
             }
             
-            // Remover dos dados do exercício
+            // Remover dos dados dos exercícios
             const data = loadExercisesData();
             if (data[currentExercise]) {
                 delete data[currentExercise];
@@ -3203,289 +3033,1131 @@
             
             // Remover dos planos
             const plans = loadPlansData();
+            let updatedPlans = false;
             plans.forEach(plan => {
-                if (plan.days) {
-                    plan.days.forEach(day => {
-                        if (day.exercises) {
-                            day.exercises = day.exercises.filter(ex => ex.name !== currentExercise);
-                        }
-                    });
+                plan.days.forEach(day => {
+                    const originalLength = day.exercises.length;
+                    day.exercises = day.exercises.filter(exercise => exercise.name !== currentExercise);
+                    if (day.exercises.length !== originalLength) {
+                        updatedPlans = true;
+                    }
+                });
+            });
+            if (updatedPlans) {
+                savePlansData(plans);
+            }
+            
+            // Remover dos treinos
+            const workouts = loadWorkoutsData();
+            let updatedWorkouts = false;
+            workouts.forEach(workout => {
+                const originalLength = workout.exercises.length;
+                workout.exercises = workout.exercises.filter(exercise => exercise.name !== currentExercise);
+                if (workout.exercises.length !== originalLength) {
+                    updatedWorkouts = true;
                 }
             });
-            savePlansData(plans);
+            if (updatedWorkouts) {
+                saveWorkoutsData(workouts);
+            }
+            
+            // Remover mídia
+            const mediaData = loadExerciseMediaData();
+            if (mediaData[currentExercise]) {
+                delete mediaData[currentExercise];
+                saveExerciseMediaData(mediaData);
+            }
             
             closeDeleteExerciseModal();
             showToast('Exercício removido.');
             closeExerciseDetail();
-            renderExercises();
         }
 
-        // ===== NOVAS FUNÇÕES PARA A GESTÃO DO DIA =====
-        function renderPlanDaysDetail(days) {
-            const daysContainer = document.getElementById('planDaysDetail');
-            if (!days || !days.length) {
-                daysContainer.innerHTML = `<div class="card" style="text-align:center;">Nenhum dia adicionado</div>`;
+        // ===== Funções para a Página de Planos =====
+        function renderPlans(){ 
+            const list=document.getElementById('plansList'); 
+            const plans=loadPlansData(); 
+            if(plans.length===0){ list.innerHTML='<div class="card">Sem planos ainda.</div>'; return; } 
+            
+            list.innerHTML=plans.map(p=>`
+                <div class="list-item" data-plan-id="${p.id}">
+                    <div><i class="bi bi-calendar-week"></i></div>
+                    <div>
+                        <div class="title">${p.name}</div>
+                        <div class="subtitle">${p.days.length} dias</div>
+                    </div>
+                    <button class="kebab" data-plan-id="${p.id}"><i class="bi bi-three-dots-vertical"></i></button>
+                </div>
+            `).join(''); 
+            
+            // Adicionar event listeners após renderizar
+            setTimeout(() => {
+                // Clique no item do plano
+                document.querySelectorAll('.list-item[data-plan-id]').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        // Não abrir se o clique foi no botão de opções
+                        if (!e.target.closest('.kebab')) {
+                            const planId = this.getAttribute('data-plan-id');
+                            openPlanDetail(planId);
+                        }
+                    });
+                });
+                
+                // Clique no botão de opções
+                document.querySelectorAll('.kebab[data-plan-id]').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const planId = this.getAttribute('data-plan-id');
+                        openPlanDetail(planId);
+                    });
+                });
+            }, 0);
+        }
+        
+        function openPlanOptions(planId, event) {
+            event.stopPropagation();
+            
+            // Fechar menus abertos anteriormente
+            closeAllPlanOptionsMenus();
+            
+            const button = event.target;
+            const menu = document.createElement('div');
+            menu.className = 'plan-options-menu';
+            menu.style.cssText = `
+                position: absolute;
+                background: var(--card);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 8px;
+                padding: 8px 0;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                min-width: 120px;
+            `;
+            
+            menu.innerHTML = `
+                <div class="plan-option" onclick="editPlan('${planId}')" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-pencil"></i> Editar
+                </div>
+                <div class="plan-option" onclick="deletePlan('${planId}')" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--danger);">
+                    <i class="bi bi-trash"></i> Eliminar
+                </div>
+            `;
+            
+            // Posicionar o menu perto do botão
+            const rect = button.getBoundingClientRect();
+            menu.style.top = `${rect.bottom + window.scrollY}px`;
+            menu.style.left = `${rect.left + window.scrollX - 100}px`;
+            
+            menu.id = `plan-menu-${planId}`;
+            document.body.appendChild(menu);
+            
+            // Fechar menu ao clicar fora
+            setTimeout(() => {
+                document.addEventListener('click', closeAllPlanOptionsMenus, { once: true });
+            }, 100);
+        }
+
+        function closeAllPlanOptionsMenus() {
+            const menus = document.querySelectorAll('.plan-options-menu');
+            menus.forEach(menu => menu.remove());
+        }
+
+        function editPlan(planId) {
+            closeAllPlanOptionsMenus();
+            openPlanDetail(planId);
+            // Aqui você pode adicionar lógica para edição rápida do nome, etc.
+        }
+
+        function deletePlan(planId) {
+            closeAllPlanOptionsMenus();
+            
+            // Usar a lógica existente de eliminação de plano
+            const plans = loadPlansData();
+            const planIndex = plans.findIndex(p => p.id === planId);
+            
+            if (planIndex !== -1) {
+                const planName = plans[planIndex].name;
+                if (confirm(`Tem a certeza que deseja eliminar o plano "${planName}"?`)) {
+                    plans.splice(planIndex, 1);
+                    savePlansData(plans);
+                    
+                    // Se era o plano selecionado, limpar seleção
+                    if (selectedPlanId === planId) {
+                        selectedPlanId = null;
+                        localStorage.removeItem(storageKeys.SELECTED_PLAN);
+                        document.getElementById('selectedPlanLabel').textContent = '—';
+                        document.getElementById('selectedPlanDays').innerHTML = '';
+                    }
+                    
+                    renderPlans();
+                    showToast('Plano eliminado.');
+                }
+            }
+        }
+
+        function openPlanDetail(id){ 
+            const plans=loadPlansData(); 
+            const plan=plans.find(p=>p.id===id); 
+            if(!plan) {
+                showToast('Plano não encontrado');
                 return;
+            } 
+            
+            // Garantir que o plano tem a estrutura correta
+            if (!plan.days) {
+                plan.days = [];
             }
             
-            let html = '';
-            days.forEach((day, dIndex) => {
-                html += `
+            currentPlanDetail=plan; 
+            document.getElementById('planDetailTitle').textContent=plan.name; 
+            renderPlanDaysDetail(plan.days); 
+            showPage('planDetailPage'); 
+        }
+        
+        function closePlanDetail(){ showPage('plansPage'); }
+        
+        function renderPlanDaysDetail(days){ 
+            const list=document.getElementById('planDaysDetail'); 
+            if(days.length===0){ list.innerHTML='<div class="card">Sem dias ainda.</div>'; return; } 
+            list.innerHTML=days.map((day, index)=>`
                 <div class="plan-day-item">
                     <div class="plan-day-info">
                         <div class="plan-day-name">${day.name}</div>
                         <div class="plan-day-exercises-count">${day.exercises ? day.exercises.length : 0} exercícios</div>
                     </div>
-                    <button class="plan-day-options" onclick="openDayManagementPage(${dIndex})">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                </div>`;
-            });
-            daysContainer.innerHTML = html;
+                    <div>
+                        <button class="plan-day-options" onclick="openDayManagementPage(${index})"><i class="bi bi-three-dots-vertical"></i></button>
+                    </div>
+                </div>
+            `).join(''); 
         }
         
-        // NOVA FUNÇÃO: Abrir página de gestão do dia
+        // MODAL: Gestão do Dia (NOVA)
         function openDayManagementPage(dayIndex) {
+            // Verificar se currentPlanDetail e days existem
+            if (!currentPlanDetail || !currentPlanDetail.days || !currentPlanDetail.days[dayIndex]) {
+                console.error('Erro: Plano ou dia não encontrado');
+                showToast('Erro ao abrir gestão do dia');
+                return;
+            }
+            
+            // Recarregar o plano atual para garantir que temos os dados mais recentes
+            const plans = loadPlansData();
+            const updatedPlan = plans.find(p => p.id === currentPlanDetail.id);
+            if (updatedPlan) {
+                currentPlanDetail = updatedPlan;
+            }
+            
             currentDayManagementIndex = dayIndex;
             const day = currentPlanDetail.days[dayIndex];
-            
-            // Preencher o título da página
             document.getElementById('dayManagementPageTitle').textContent = day.name;
-            
-            // Preencher a lista de exercícios
-            renderDayManagementPageExercises(day.exercises);
-            
-            // Mostrar a página
+            renderDayManagementPageExerciseList(day.exercises || []);
             showPage('dayManagementPage');
         }
         
         function closeDayManagementPage() {
+            // Recarregar os dados do plano antes de voltar
+            const plans = loadPlansData();
+            const updatedPlan = plans.find(p => p.id === currentPlanDetail.id);
+            if (updatedPlan) {
+                currentPlanDetail = updatedPlan;
+                renderPlanDaysDetail(currentPlanDetail.days);
+            }
             showPage('planDetailPage');
         }
         
-        function renderDayManagementPageExercises(exercises) {
-            const container = document.getElementById('dayManagementPageExerciseList');
-            container.innerHTML = '';
-            
-            if (!exercises || !exercises.length) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.7;">Nenhum exercício adicionado</div>';
+        function renderDayManagementPageExerciseList(exercises) {
+            const list = document.getElementById('dayManagementPageExerciseList');
+            if (!exercises || exercises.length === 0) {
+                list.innerHTML = '<div class="card">Sem exercícios ainda.</div>';
                 return;
             }
             
-            exercises.forEach((exercise, index) => {
-                const exerciseEl = document.createElement('div');
-                exerciseEl.className = 'day-management-page-exercise-item';
-                exerciseEl.setAttribute('data-index', index);
-                exerciseEl.draggable = true;
-                
-                exerciseEl.innerHTML = `
+            list.innerHTML = exercises.map((exercise, index) => `
+                <div class="day-management-page-exercise-item" draggable="true" ondragstart="dragExerciseStart(event, ${index})" ondragover="dragExerciseOver(event)" ondrop="dragExerciseDrop(event, ${index})">
                     <div class="day-management-page-exercise-info">
                         <div class="day-management-page-exercise-name">${exercise.name}</div>
                         <div class="day-management-page-exercise-details">${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
                     </div>
                     <div>
-                        <button class="day-management-page-exercise-edit" onclick="editExerciseFromDayManagementPage(${index})">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="day-management-page-exercise-remove" onclick="removeExerciseFromDayManagementPage(${index})">
-                            <i class="bi bi-x"></i>
-                        </button>
+                        <button class="day-management-page-exercise-edit" onclick="openEditExerciseModalFromPage(${index})"><i class="bi bi-pencil"></i></button>
+                        <button class="day-management-page-exercise-remove" onclick="openDeleteExerciseConfirmModalFromPage(${index})"><i class="bi bi-trash"></i></button>
                     </div>
-                `;
-                
-                // Adicionar eventos de drag and drop
-                exerciseEl.addEventListener('dragstart', handleDragStart);
-                exerciseEl.addEventListener('dragover', handleDragOver);
-                exerciseEl.addEventListener('drop', handleDrop);
-                exerciseEl.addEventListener('dragend', handleDragEnd);
-                
-                container.appendChild(exerciseEl);
-            });
-        }
-        
-        // Funções para drag and drop
-        let draggedItem = null;
-
-        function handleDragStart(e) {
-            draggedItem = this;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', this.getAttribute('data-index'));
-            this.style.opacity = '0.5';
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            if (draggedItem !== this) {
-                const fromIndex = parseInt(draggedItem.getAttribute('data-index'));
-                const toIndex = parseInt(this.getAttribute('data-index'));
-                
-                // Reordenar os exercícios
-                const exercises = currentPlanDetail.days[currentDayManagementIndex].exercises;
-                const [movedItem] = exercises.splice(fromIndex, 1);
-                exercises.splice(toIndex, 0, movedItem);
-                
-                // Re-renderizar a lista
-                renderDayManagementPageExercises(exercises);
-            }
-            return false;
-        }
-
-        function openDeleteExerciseConfirmModal(index) {
-            exerciseToRemoveIndex = index;
-            document.getElementById('deleteExerciseConfirmModal').style.display = 'block';
-        }
-
-        function closeDeleteExerciseConfirmModal() {
-            document.getElementById('deleteExerciseConfirmModal').style.display = 'none';
-        }
-
-        function confirmRemoveExerciseFromDay() {
-            if (exerciseToRemoveIndex === null) return;
-            
-            // Remover o exercício do dia
-            currentPlanDetail.days[currentDayManagementIndex].exercises.splice(exerciseToRemoveIndex, 1);
-            
-            // Re-renderizar a lista de exercícios
-            renderDayManagementPageExercises(currentPlanDetail.days[currentDayManagementIndex].exercises);
-            
-            // Atualizar os dados no localStorage
-            const plans = loadPlansData();
-            const i = plans.findIndex(p => p.id === currentPlanDetail.id);
-            if (i !== -1) {
-                plans[i] = currentPlanDetail;
-                savePlansData(plans);
-            }
-            
-            closeDeleteExerciseConfirmModal();
-            showToast('Exercício removido.');
-        }
-
-        function handleDragEnd() {
-            this.style.opacity = '1';
+                </div>
+            `).join('');
         }
         
         function openAddExerciseToDayModalFromPage() {
-            openAddExerciseToDayModal(currentDayManagementIndex);
+            // Abrir o modal correto para adicionar exercício ao dia
+            document.getElementById('addExerciseToDayModal').style.display = 'block';
+            
+            // Preencher o select com exercícios disponíveis
+            const exerciseSelect = document.getElementById('exerciseSelect');
+            exerciseSelect.innerHTML = '<option value="">Selecione um exercício</option>' + 
+                availableExercises.map(e => `<option value="${e.name}">${e.name}</option>`).join('');
         }
         
-        function editExerciseFromDayManagementPage(exerciseIndex) {
+        function openEditExerciseModalFromPage(exerciseIndex) {
             openEditExerciseModal(currentDayManagementIndex, exerciseIndex);
         }
         
-        function removeExerciseFromDayManagementPage(exerciseIndex) {
-            openDeleteExerciseConfirmModal(exerciseIndex);
+        function openDeleteExerciseConfirmModalFromPage(exerciseIndex) {
+            openDeleteExerciseConfirmModal(currentDayManagementIndex, exerciseIndex);
         }
         
-        function openEditDayNameModalFromPage() {
-            openEditDayNameModal();
+        // Funções de drag and drop para reordenar exercícios
+        let draggedExerciseIndex = null;
+        
+        function dragExerciseStart(event, index) {
+            draggedExerciseIndex = index;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', index);
+            event.currentTarget.style.opacity = '0.4';
         }
         
-        function saveDayManagementPage() {
-            // Fechar a página
-            closeDayManagementPage();
+        function dragExerciseOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }
+        
+        function dragExerciseDrop(event, targetIndex) {
+            event.preventDefault();
+            event.currentTarget.style.opacity = '1';
             
-            // Atualizar os dados no localStorage
-            const plans = loadPlansData();
-            const i = plans.findIndex(p => p.id === currentPlanDetail.id);
-            if (i !== -1) {
-                plans[i] = currentPlanDetail;
-                savePlansData(plans);
-            }
+            if (draggedExerciseIndex === null || draggedExerciseIndex === targetIndex) return;
             
-            // Re-renderizar os dias do plano
-            renderPlanDaysDetail(currentPlanDetail.days);
-            showToast('Alterações guardadas!');
+            const day = currentPlanDetail.days[currentDayManagementIndex];
+            const exercises = day.exercises;
+            
+            // Reordenar os exercícios
+            const draggedExercise = exercises[draggedExerciseIndex];
+            exercises.splice(draggedExerciseIndex, 1);
+            exercises.splice(targetIndex, 0, draggedExercise);
+            
+            // Atualizar a lista
+            renderDayManagementPageExerciseList(exercises);
+            
+            // Salvar as alterações
+            savePlanChanges();
+            
+            draggedExerciseIndex = null;
         }
 
-        // ===== Funções para a Página de Detalhes do Dia - ATUALIZADA conforme a imagem =====
-        function openDayDetail(planId, dayIndex) {
-            const plans = loadPlansData();
-            const plan = plans.find(p => p.id === planId);
-            if (!plan || !plan.days || !plan.days[dayIndex]) return;
-            
-            currentDayDetail = {
-                plan: plan,
-                dayIndex: dayIndex,
-                day: plan.days[dayIndex]
-            };
-            
-            document.getElementById('dayDetailTitle').textContent = currentDayDetail.day.name;
-            renderDayExercises(currentDayDetail.day.exercises);
-            showPage('dayDetailPage');
+        function closeEditDayNameModal() {
+            document.getElementById('editDayNameModal').style.display = 'none';
         }
         
-        function closeDayDetail() {
-            showPage('mainPage');
+        // MODAL: Editar nome do dia (NOVA)
+        function openEditDayNameModalFromPage() {
+            const day = currentPlanDetail.days[currentDayManagementIndex];
+            document.getElementById('editDayNameInput').value = day.name;
+            document.getElementById('editDayNameModal').style.display = 'block';
         }
         
-        function renderDayExercises(exercises) {
-            const container = document.getElementById('dayExercisesList');
-            container.innerHTML = '';
-            
-            if (!exercises || !exercises.length) {
-                container.innerHTML = '<div class="card">Nenhum exercício neste dia.</div>';
+        function saveDayName() {
+            const newName = document.getElementById('editDayNameInput').value.trim();
+            if (!newName) {
+                alert('Por favor, insira um nome para o dia.');
                 return;
             }
             
-            exercises.forEach(exercise => {
-                const exerciseEl = document.createElement('div');
-                exerciseEl.className = 'day-detail-exercise';
-                exerciseEl.innerHTML = `
+            currentPlanDetail.days[currentDayManagementIndex].name = newName;
+            document.getElementById('dayManagementPageTitle').textContent = newName;
+            
+            // Atualizar também na página de detalhes do plano
+            const dayItems = document.querySelectorAll('.plan-day-name');
+            if (dayItems[currentDayManagementIndex]) {
+                dayItems[currentDayManagementIndex].textContent = newName;
+            }
+            
+            savePlanChanges();
+            closeEditDayNameModal();
+            showToast('Nome do dia alterado.');
+        }
+        
+        function openPlanSelection(){ 
+            const list=document.getElementById('planSelectionList'); 
+            const plans=loadPlansData(); 
+            if(plans.length===0){ list.innerHTML='<div class="card">Sem planos ainda.</div>'; return; } 
+            list.innerHTML=plans.map(p=>`
+                <div class="plan-selection-item" onclick="selectPlan('${p.id}')">
+                    <div class="title">${p.name}</div>
+                    <div class="subtitle">${p.days.length} dias</div>
+                </div>
+            `).join(''); 
+            document.getElementById('planSelectionModal').style.display='block'; 
+        }
+        
+        function closePlanSelection(){ document.getElementById('planSelectionModal').style.display='none'; }
+        
+        function selectPlan(id){ 
+            const plans=loadPlansData(); 
+            const plan=plans.find(p=>p.id===id); 
+            if(!plan) return; 
+            
+            selectedPlanId=id; 
+            localStorage.setItem(storageKeys.SELECTED_PLAN, id); 
+            document.getElementById('selectedPlanLabel').textContent=plan.name; 
+            
+            // Garantir que os dias existem
+            if (!plan.days) {
+                plan.days = [];
+            }
+            
+            renderSelectedPlanDays(plan.days); 
+            closePlanSelection(); 
+            showToast('Plano selecionado.'); 
+        }
+        
+        function renderSelectedPlanDays(days){ 
+            const container=document.getElementById('selectedPlanDays'); 
+            
+            // Limpar o container primeiro
+            container.innerHTML = '';
+            
+            if(!days || days.length===0){ 
+                container.innerHTML='<div class="card">Este plano não tem dias.</div>'; 
+                return; 
+            } 
+            
+            container.innerHTML=days.map((day, index)=>`
+                <div class="day-card">
+                    <div class="day-number-box">
+                        <div>DIA</div>
+                        <div>${index + 1}</div>
+                    </div>
+                    <div style="flex:1;">
+                        <h5>${day.name}</h5>
+                        <small>${day.exercises ? day.exercises.length : 0} exercícios</small>
+                    </div>
+                    <button class="start-workout-btn-home" onclick="openDayDetail('${day.name}')">Iniciar</button>
+                </div>
+            `).join(''); 
+        }
+        
+        function openDayDetail(dayName){ 
+            if(!selectedPlanId) return; 
+            const plans=loadPlansData(); 
+            const plan=plans.find(p=>p.id===selectedPlanId); 
+            if(!plan || !plan.days) return; 
+            const day=plan.days.find(d=>d.name===dayName); 
+            if(!day) return; 
+            currentDayDetail=day; 
+            document.getElementById('dayDetailTitle').textContent=day.name; 
+            renderDayExercises(day.exercises || []); 
+            showPage('dayDetailPage'); 
+        }
+        
+        function closeDayDetail(){ showPage('mainPage'); }
+        
+        function renderDayExercises(exercises){ 
+            const list=document.getElementById('dayExercisesList'); 
+            if(exercises.length===0){ list.innerHTML='<div class="card">Sem exercícios ainda.</div>'; return; } 
+            list.innerHTML=exercises.map(e=>`
+                <div class="day-detail-exercise">
                     <div class="day-detail-exercise-header">
-                        <div class="day-detail-exercise-name">${exercise.name}</div>
+                        <div class="day-detail-exercise-name">${e.name}</div>
                     </div>
                     <div class="day-detail-exercise-details">
-                        <span class="day-detail-exercise-sets">${exercise.sets}x${exercise.reps}</span>
-                        <span class="day-detail-exercise-weight">${exercise.weight || '0'}kg</span>
+                        <div class="day-detail-exercise-sets">${e.sets} séries</div>
+                        <div class="day-detail-exercise-weight">${e.reps} reps ${e.weight ? `@ ${e.weight} kg` : ''}</div>
+                    </div>
+                </div>
+            `).join(''); 
+        }
+        
+        // MODAL: Criar plano
+        function openPlanModal(){ document.getElementById('modalPlanTitle').textContent='Criar Plano de Treino'; document.getElementById('planNameInput').value=''; document.getElementById('planModal').style.display='block'; }
+        
+        function closePlanModal(){ document.getElementById('planModal').style.display='none'; }
+        
+        function savePlan(){ 
+            const name=document.getElementById('planNameInput').value.trim(); 
+            if(!name) {
+                showToast('Por favor, insira um nome para o plano');
+                return;
+            } 
+            
+            const plans=loadPlansData(); 
+            const newPlan={ 
+                id:Date.now().toString(), 
+                name, 
+                days:[] // Garantir que o array de dias é inicializado
+            }; 
+            plans.push(newPlan); 
+            savePlansData(plans); 
+            renderPlans(); 
+            closePlanModal(); 
+            showToast('Plano criado!'); 
+        }
+        
+        // MODAL: Adicionar dia
+        function openAddDayModal(){ document.getElementById('dayNameInput').value=''; document.getElementById('addDayModal').style.display='block'; }
+        
+        function closeAddDayModal(){ document.getElementById('addDayModal').style.display='none'; }
+        
+        function saveDay(){ 
+            const name=document.getElementById('dayNameInput').value.trim(); 
+            if(!name) {
+                showToast('Por favor, insira um nome para o dia');
+                return;
+            } 
+            
+            if(!currentPlanDetail) {
+                showToast('Erro: Nenhum plano selecionado');
+                return;
+            } 
+            
+            // Garantir que o array days existe
+            if (!currentPlanDetail.days) {
+                currentPlanDetail.days = [];
+            }
+            
+            currentPlanDetail.days.push({ name, exercises: [] }); 
+            
+            // Guardar automaticamente
+            savePlanChanges();
+            
+            closeAddDayModal(); 
+            showToast('Dia adicionado!'); 
+        }
+        
+        // MODAL: Editar nome do plano
+        function openEditPlanNameModal(){ document.getElementById('editPlanNameInput').value=currentPlanDetail.name; document.getElementById('editPlanNameModal').style.display='block'; }
+        
+        function closeEditPlanNameModal(){ document.getElementById('editPlanNameModal').style.display='none'; }
+        
+        function savePlanName(){ 
+            const name=document.getElementById('editPlanNameInput').value.trim(); 
+            if(!name) return; 
+            currentPlanDetail.name=name; 
+            document.getElementById('planDetailTitle').textContent=name; 
+            closeEditPlanNameModal(); 
+            showToast('Nome do plano alterado.'); 
+        }
+        
+        // MODAL: Opções do dia (apenas remover)
+        function openDayOptionsModal(dayIndex){ 
+            const day=currentPlanDetail.days[dayIndex]; 
+            document.getElementById('dayNameToDelete').textContent=day.name; 
+            document.getElementById('dayOptionsModal').style.display='block'; 
+        }
+        
+        function closeDayOptionsModal(){ document.getElementById('dayOptionsModal').style.display='none'; }
+        
+        function removeDay(){ 
+            if(!currentPlanDetail) return; 
+            currentPlanDetail.days.splice(currentDayManagementIndex, 1); 
+            renderPlanDaysDetail(currentPlanDetail.days); 
+            closeDayOptionsModal(); 
+            showToast('Dia removido.'); 
+            closeDayManagementPage();
+        }
+        
+        // MODAL: Adicionar exercício ao dia (já existe)
+        function openAddExerciseToDayModalFromManagement(){ openAddExerciseModal(currentDayManagementIndex); }
+        
+        function saveExerciseToDay(){ 
+            const ex=document.getElementById('exerciseSelect').value; 
+            const sets=parseInt(document.getElementById('exerciseSets').value)||1; 
+            const reps=parseInt(document.getElementById('exerciseReps').value)||1; 
+            const weight=parseFloat(document.getElementById('exerciseWeight').value)||0; 
+            
+            if(!ex) return; 
+            
+            let targetDay;
+            if (currentDayForExercise !== null && currentDayForExercise !== undefined) {
+                // Estamos na gestão do dia
+                targetDay = currentPlanDetail.days[currentDayForExercise];
+            } else {
+                // Estamos no modal normal
+                targetDay = currentPlanDetail.days[currentDayManagementIndex];
+            }
+            
+            if(!targetDay) return; 
+            
+            targetDay.exercises.push({ name: ex, sets, reps, weight }); 
+            
+            // GUARDAR AUTOMATICAMENTE
+            savePlanChanges();
+            
+            // Atualizar a visualização
+            if (currentPage === 'dayManagementPage') {
+                renderDayManagementPageExerciseList(targetDay.exercises);
+            } else {
+                renderPlanDaysDetail(currentPlanDetail.days);
+            }
+            
+            closeAddExerciseToDayModal(); 
+            showToast('Exercício adicionado!'); 
+        }
+        
+        function closeAddExerciseToDayModal(){ 
+            document.getElementById('addExerciseToDayModal').style.display='none'; 
+            currentDayForExercise = null;
+        }
+        
+        // MODAL: Editar exercício do dia (MODIFICADO)
+        function openEditExerciseModal(dayIndex, exerciseIndex){ 
+            const day=currentPlanDetail.days[dayIndex]; 
+            const ex=day.exercises[exerciseIndex]; 
+            document.getElementById('editExerciseNameStatic').textContent=ex.name; 
+            document.getElementById('editExerciseSets').value=ex.sets; 
+            document.getElementById('editExerciseReps').value=ex.reps; 
+            document.getElementById('editExerciseWeight').value=ex.weight||''; 
+            exerciseToRemoveIndex=exerciseIndex; 
+            document.getElementById('editExerciseModal').style.display='block'; 
+        }
+        
+        function closeEditExerciseModal(){ document.getElementById('editExerciseModal').style.display='none'; }
+        
+        function saveEditedExercise(){ 
+            const sets=parseInt(document.getElementById('editExerciseSets').value)||1; 
+            const reps=parseInt(document.getElementById('editExerciseReps').value)||1; 
+            const weight=parseFloat(document.getElementById('editExerciseWeight').value)||0; 
+            
+            if(!currentPlanDetail) return; 
+            const day=currentPlanDetail.days[currentDayManagementIndex]; 
+            if(!day) return; 
+            
+            day.exercises[exerciseToRemoveIndex].sets=sets; 
+            day.exercises[exerciseToRemoveIndex].reps=reps; 
+            day.exercises[exerciseToRemoveIndex].weight=weight; 
+            
+            // Atualizar a visualização
+            if (currentPage === 'dayManagementPage') {
+                renderDayManagementPageExerciseList(day.exercises);
+            } else {
+                renderPlanDaysDetail(currentPlanDetail.days);
+            }
+            
+            closeEditExerciseModal(); 
+            showToast('Exercício atualizado!'); 
+        }
+        
+        // MODAL: Confirmar remoção de exercício do plano
+        function openDeleteExerciseConfirmModal(dayIndex, exerciseIndex){ 
+            exerciseToRemoveIndex=exerciseIndex; 
+            document.getElementById('deleteExerciseConfirmModal').style.display='block'; 
+        }
+        
+        function closeDeleteExerciseConfirmModal(){ document.getElementById('deleteExerciseConfirmModal').style.display='none'; }
+        
+        function confirmRemoveExerciseFromDay(){ 
+            if(!currentPlanDetail) return; 
+            const day=currentPlanDetail.days[currentDayManagementIndex]; 
+            if(!day) return; 
+            
+            day.exercises.splice(exerciseToRemoveIndex, 1); 
+            
+            // Atualizar a visualização
+            if (currentPage === 'dayManagementPage') {
+                renderDayManagementPageExerciseList(day.exercises);
+            } else {
+                renderPlanDaysDetail(currentPlanDetail.days);
+            }
+            
+            closeDeleteExerciseConfirmModal(); 
+            showToast('Exercício removido do dia.'); 
+        }
+        
+        // MODAL: Confirmar remoção do plano
+        function removePlan(){ document.getElementById('deletePlanConfirmModal').style.display='block'; }
+        
+        function closeDeletePlanConfirmModal(){ document.getElementById('deletePlanConfirmModal').style.display='none'; }
+        
+        function confirmRemovePlan(){ 
+            if(!currentPlanDetail) return; 
+            const plans=loadPlansData(); 
+            const index=plans.findIndex(p=>p.id===currentPlanDetail.id); 
+            if(index!==-1){ 
+                plans.splice(index,1); 
+                savePlansData(plans); 
+            } 
+            closeDeletePlanConfirmModal(); 
+            showToast('Plano removido.'); 
+            closePlanDetail(); 
+        }
+        
+        function savePlanChanges(){ 
+            const plans=loadPlansData(); 
+            const index=plans.findIndex(p=>p.id===currentPlanDetail.id); 
+            if(index!==-1){ 
+                plans[index]=currentPlanDetail; 
+                savePlansData(plans); 
+            } 
+            
+            // Atualizar TODAS as visualizações relevantes
+            if (currentPage === 'planDetailPage') {
+                renderPlanDaysDetail(currentPlanDetail.days);
+            }
+            
+            // SEMPRE atualizar a main page se este for o plano selecionado
+            if (selectedPlanId === currentPlanDetail.id) {
+                renderSelectedPlanDays(currentPlanDetail.days);
+            }
+            
+            // Atualizar também a página de planos
+            renderPlans();
+            
+            showToast('Plano guardado!'); 
+        }
+        
+        // ===== Funções para a Página de Treinos (Histórico) =====
+        function renderWorkouts(){ 
+            const q = (document.getElementById('workoutSearch').value || '').toLowerCase();
+            const list = document.getElementById('workoutsList'); 
+            const workouts = loadWorkoutsData(); 
+            
+            // Aplicar filtros
+            let filteredWorkouts = workouts.filter(w => 
+                w.dayName.toLowerCase().includes(q) || 
+                (w.planName && w.planName.toLowerCase().includes(q))
+            );
+            
+            // Aplicar filtro de data
+            if (workoutFilters.dateStart) {
+                filteredWorkouts = filteredWorkouts.filter(w => new Date(w.startTime) >= new Date(workoutFilters.dateStart));
+            }
+            if (workoutFilters.dateEnd) {
+                // Adicionar um dia para incluir o dia final
+                const endDate = new Date(workoutFilters.dateEnd);
+                endDate.setDate(endDate.getDate() + 1);
+                filteredWorkouts = filteredWorkouts.filter(w => new Date(w.startTime) < endDate);
+            }
+            
+            // Aplicar filtro de plano
+            if (workoutFilters.plan) {
+                filteredWorkouts = filteredWorkouts.filter(w => w.planId === workoutFilters.plan);
+            }
+            
+            // Ordenar por data (mais recente primeiro)
+            filteredWorkouts.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            
+            if (filteredWorkouts.length === 0) { 
+                list.innerHTML = '<div class="card">Nenhum treino encontrado.</div>'; 
+                return; 
+            } 
+            
+            list.innerHTML = filteredWorkouts.map(w => `
+                <div class="workout-item-compact" onclick="openWorkoutDetailModal('${w.startTime}')">
+                    <div class="workout-header-compact">
+                        <div class="workout-title-compact">${w.dayName}</div>
+                        <div class="workout-date-compact">${new Date(w.startTime).toLocaleDateString('pt-PT')}</div>
+                    </div>
+                    <div class="workout-details-compact">
+                        <div class="workout-day-compact">${w.planName || 'Plano'}</div>
+                        <div class="workout-duration-compact">${w.duration || 'N/A'}</div>
+                    </div>
+                </div>
+            `).join(''); 
+        }
+        
+        // MODAL: Detalhes do treino
+        function openWorkoutDetailModal(startTime) {
+            const workouts = loadWorkoutsData();
+            const workout = workouts.find(w => w.startTime === startTime);
+            if (!workout) return;
+            
+            currentWorkoutDetail = workout;
+            
+            // Preencher informações gerais
+            document.getElementById('workoutDetailInfo').innerHTML = `
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Plano:</span>
+                    <span class="workout-detail-info-value">${workout.planName || 'N/A'}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Dia:</span>
+                    <span class="workout-detail-info-value">${workout.dayName}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Data:</span>
+                    <span class="workout-detail-info-value">${new Date(workout.startTime).toLocaleDateString('pt-PT')}</span>
+                </div>
+                <div class="workout-detail-info-item">
+                    <span class="workout-detail-info-label">Duração:</span>
+                    <span class="workout-detail-info-value">${workout.duration || 'N/A'}</span>
+                </div>
+            `;
+            
+            // Preencher exercícios
+            const exercisesContainer = document.getElementById('workoutDetailExercises');
+            exercisesContainer.innerHTML = workout.exercises.map(exercise => {
+                let setsHTML = '';
+                if (exercise.results && exercise.results.length > 0) {
+                    setsHTML = exercise.results.map((set, i) => `
+                        <div class="workout-detail-set">
+                            <div>Série ${i + 1}:</div>
+                            <div>${set.repetitions || 0} reps</div>
+                            <div>${set.weight || 0} kg</div>
+                        </div>
+                    `).join('');
+                }
+                
+                return `
+                    <div class="workout-detail-exercise" onclick="toggleWorkoutExerciseDetails(this)">
+                        <div class="workout-detail-exercise-header">
+                            <div class="workout-detail-exercise-name">${exercise.name}</div>
+                        </div>
+                        <div class="workout-detail-exercise-sets">${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
+                        <div class="workout-detail-exercise-details">
+                            <div class="workout-detail-set workout-detail-set-header">
+                                <div>Série</div>
+                                <div>Reps</div>
+                                <div>Peso</div>
+                            </div>
+                            ${setsHTML}
+                        </div>
                     </div>
                 `;
-                container.appendChild(exerciseEl);
+            }).join('');
+            
+            document.getElementById('workoutDetailModal').style.display = 'block';
+        }
+        
+        function closeWorkoutDetailModal() {
+            document.getElementById('workoutDetailModal').style.display = 'none';
+        }
+        
+        function toggleWorkoutExerciseDetails(element) {
+            element.classList.toggle('expanded');
+        }
+        
+        // MODAL: Eliminar treino
+        function deleteWorkout() {
+            document.getElementById('deleteWorkoutConfirmModal').style.display = 'block';
+        }
+        
+        function closeDeleteWorkoutConfirmModal() {
+            document.getElementById('deleteWorkoutConfirmModal').style.display = 'none';
+        }
+        
+        function confirmDeleteWorkout() {
+            if (!currentWorkoutDetail) return;
+            
+            // Remover o treino do histórico de exercícios
+            removeWorkoutFromExerciseHistory(currentWorkoutDetail);
+            
+            const workouts = loadWorkoutsData();
+            const index = workouts.findIndex(w => w.startTime === currentWorkoutDetail.startTime);
+            if (index !== -1) {
+                workouts.splice(index, 1);
+                saveWorkoutsData(workouts);
+            }
+            
+            closeDeleteWorkoutConfirmModal();
+            closeWorkoutDetailModal();
+            renderWorkouts();
+            showToast('Treino eliminado.');
+        }
+
+        function removeWorkoutFromExerciseHistory(workout) {
+            const exercisesData = loadExercisesData();
+            
+            workout.exercises.forEach(exercise => {
+                if (exercisesData[exercise.name] && exercisesData[exercise.name].history) {
+                    // Filtrar o histórico para remover este workout
+                    exercisesData[exercise.name].history = exercisesData[exercise.name].history.filter(
+                        h => h.startTime !== workout.startTime
+                    );
+                }
+            });
+            
+            saveExercisesData(exercisesData);
+        }
+        
+        // ===== Funções para Filtros =====
+        
+        // Filtros de exercícios
+        function openExerciseFilterModal() {
+            // Preencir checkboxes com os filtros atuais
+            const checkboxes = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Other'];
+            checkboxes.forEach(muscle => {
+                const checkbox = document.getElementById(`filter${muscle}`);
+                if (checkbox) {
+                    checkbox.checked = exerciseFilters.muscleGroups.includes(muscle);
+                }
+            });
+            
+            // Definir a ordenação atual
+            document.getElementById('exerciseSort').value = exerciseFilters.sortBy;
+            
+            document.getElementById('exerciseFilterModal').style.display = 'block';
+        }
+        
+        function closeExerciseFilterModal() {
+            document.getElementById('exerciseFilterModal').style.display = 'none';
+        }
+        
+        function clearExerciseFilters() {
+            exerciseFilters = {
+                muscleGroups: [],
+                sortBy: 'name'
+            };
+            
+            // Desmarcar todas as checkboxes
+            const checkboxes = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Other'];
+            checkboxes.forEach(muscle => {
+                const checkbox = document.getElementById(`filter${muscle}`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                }
+            });
+            
+            // Definir ordenação padrão
+            document.getElementById('exerciseSort').value = 'name';
+            
+            renderExercises();
+            closeExerciseFilterModal();
+            showToast('Filtros limpos.');
+        }
+        
+        function applyExerciseFilters() {
+            // Obter grupos musculares selecionados
+            const muscleGroups = [];
+            const checkboxes = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Other'];
+            checkboxes.forEach(muscle => {
+                const checkbox = document.getElementById(`filter${muscle}`);
+                if (checkbox && checkbox.checked) {
+                    muscleGroups.push(muscle);
+                }
+            });
+            
+            // Obter ordenação
+            const sortBy = document.getElementById('exerciseSort').value;
+            
+            exerciseFilters = {
+                muscleGroups,
+                sortBy
+            };
+            
+            renderExercises();
+            closeExerciseFilterModal();
+            showToast('Filtros aplicados.');
+        }
+        
+        // Filtros de treinos
+        function openWorkoutFilterModal() {
+            // Preencher o dropdown de planos
+            const planSelect = document.getElementById('workoutFilterPlan');
+            const plans = loadPlansData();
+            planSelect.innerHTML = '<option value="">Todos os planos</option>' + 
+                plans.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            
+            // Definir valores atuais
+            if (workoutFilters.dateStart) {
+                document.getElementById('workoutFilterDateStart').value = workoutFilters.dateStart;
+            }
+            if (workoutFilters.dateEnd) {
+                document.getElementById('workoutFilterDateEnd').value = workoutFilters.dateEnd;
+            }
+            if (workoutFilters.plan) {
+                document.getElementById('workoutFilterPlan').value = workoutFilters.plan;
+            }
+            
+            document.getElementById('workoutFilterModal').style.display = 'block';
+        }
+        
+        function closeWorkoutFilterModal() {
+            document.getElementById('workoutFilterModal').style.display = 'none';
+        }
+        
+        function clearWorkoutFilters() {
+            workoutFilters = {
+                dateStart: null,
+                dateEnd: null,
+                plan: null
+            };
+            
+            document.getElementById('workoutFilterDateStart').value = '';
+            document.getElementById('workoutFilterDateEnd').value = '';
+            document.getElementById('workoutFilterPlan').value = '';
+            
+            renderWorkouts();
+            closeWorkoutFilterModal();
+            showToast('Filtros limpos.');
+        }
+        
+        function applyWorkoutFilters() {
+            const dateStart = document.getElementById('workoutFilterDateStart').value;
+            const dateEnd = document.getElementById('workoutFilterDateEnd').value;
+            const plan = document.getElementById('workoutFilterPlan').value;
+            
+            workoutFilters = {
+                dateStart: dateStart || null,
+                dateEnd: dateEnd || null,
+                plan: plan || null
+            };
+            
+            renderWorkouts();
+            closeWorkoutFilterModal();
+            showToast('Filtros aplicados.');
+        }
+
+        // ===== Funções para Mídia de Exercícios =====
+        function loadExerciseMediaData() {
+            return JSON.parse(localStorage.getItem(storageKeys.EXERCISE_MEDIA)) || {};
+        }
+        
+        function saveExerciseMediaData(data) {
+            localStorage.setItem(storageKeys.EXERCISE_MEDIA, JSON.stringify(data));
+        }
+        
+        function loadExerciseMedia(exerciseName) {
+            const mediaData = loadExerciseMediaData();
+            const media = mediaData[exerciseName] || {};
+            
+            const imageBox = document.getElementById('exerciseImageBox');
+            const gifBox = document.getElementById('exerciseGifBox');
+            
+            // Limpar conteúdo anterior
+            imageBox.innerHTML = '<span class="exercise-media-label">Imagem</span><button class="exercise-media-menu" onclick="openExerciseMediaMenu(\'image\', event)"><i class="bi bi-three-dots-vertical"></i></button><div class="exercise-media-options" id="imageOptions"><div class="exercise-media-option" onclick="changeExerciseMedia(\'image\')">Alterar Imagem</div><div class="exercise-media-option" onclick="removeExerciseMedia(\'image\')">Remover Imagem</div></div>';
+            gifBox.innerHTML = '<span class="exercise-media-label">GIF</span><button class="exercise-media-menu" onclick="openExerciseMediaMenu(\'gif\', event)"><i class="bi bi-three-dots-vertical"></i></button><div class="exercise-media-options" id="gifOptions"><div class="exercise-media-option" onclick="changeExerciseMedia(\'gif\')">Alterar GIF</div><div class="exercise-media-option" onclick="removeExerciseMedia(\'gif\')">Remover GIF</div></div>';
+            
+            // Adicionar imagem se existir
+            if (media.image) {
+                const img = document.createElement('img');
+                img.src = media.image;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.objectFit = 'contain';
+                imageBox.appendChild(img);
+            }
+            
+            // Adicionar GIF se existir
+            if (media.gif) {
+                const img = document.createElement('img');
+                img.src = media.gif;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.objectFit = 'contain';
+                gifBox.appendChild(img);
+            }
+        }
+        
+        function openExerciseMediaMenu(type, event) {
+            event.stopPropagation();
+            const options = document.getElementById(type + 'Options');
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            
+            // Fechar outros menus abertos
+            const allOptions = document.querySelectorAll('.exercise-media-options');
+            allOptions.forEach(opt => {
+                if (opt !== options) {
+                    opt.style.display = 'none';
+                }
             });
         }
         
+        function changeExerciseMedia(type) {
+            mediaTypeToChange = type;
+            document.getElementById('mediaInput').click();
+            
+            // Fechar o menu
+            const options = document.getElementById(type + 'Options');
+            options.style.display = 'none';
+        }
+        
+        function removeExerciseMedia(type) {
+            const mediaData = loadExerciseMediaData();
+            if (mediaData[currentExercise]) {
+                delete mediaData[currentExercise][type];
+                saveExerciseMediaData(mediaData);
+                loadExerciseMedia(currentExercise);
+                showToast(`${type === 'image' ? 'Imagem' : 'GIF'} removida.`);
+            }
+            
+            // Fechar o menu
+            const options = document.getElementById(type + 'Options');
+            options.style.display = 'none';
+        }
+        
+        // Configurar o input de arquivo para lidar com a seleção de mídia
+        document.getElementById('mediaInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const mediaData = loadExerciseMediaData();
+                if (!mediaData[currentExercise]) {
+                    mediaData[currentExercise] = {};
+                }
+                mediaData[currentExercise][mediaTypeToChange] = event.target.result;
+                saveExerciseMediaData(mediaData);
+                loadExerciseMedia(currentExercise);
+                showToast(`${mediaTypeToChange === 'image' ? 'Imagem' : 'GIF'} adicionada.`);
+            };
+            reader.readAsDataURL(file);
+            
+            // Limpar o input para permitir selecionar o mesmo arquivo novamente
+            e.target.value = '';
+        });
+        
+        // Fechar menus de mídia ao clicar fora
+        document.addEventListener('click', function() {
+            const allOptions = document.querySelectorAll('.exercise-media-options');
+            allOptions.forEach(opt => {
+                opt.style.display = 'none';
+            });
+        });
+
+        function loadOngoingWorkout() {
+            try {
+                const workout = JSON.parse(localStorage.getItem(storageKeys.ONGOING_WORKOUT));
+                if (workout) {
+                    // Garantir que dayIndex existe no workout carregado
+                    if (workout.dayIndex === undefined) {
+                        workout.dayIndex = -1;
+                    }
+                    return workout;
+                }
+            } catch (e) {
+                console.error('Erro ao carregar treino em progresso:', e);
+            }
+            return null;
+        }
+
+
+        // ===== Funções para o Fluxo de Treino =====
+        
+        // 1. Iniciar treino a partir da página de detalhes do dia
         function startWorkout() {
             if (!currentDayDetail) return;
             
-            // Resetar a flag de treino guardado
-            isWorkoutSaved = false;
+            // Encontrar o índice do dia no plano atual
+            let dayIndex = -1;
+            if (currentPlanDetail && currentPlanDetail.days) {
+                dayIndex = currentPlanDetail.days.findIndex(d => d.name === currentDayDetail.name);
+            }
             
-            // Inicializar o treino atual
+            // Criar um novo objeto de treino
             currentWorkout = {
-                planId: currentDayDetail.plan.id,
-                planName: currentDayDetail.plan.name,
-                dayIndex: currentDayDetail.dayIndex,
-                dayName: currentDayDetail.day.name,
-                exercises: JSON.parse(JSON.stringify(currentDayDetail.day.exercises)),
-                startTime: new Date(),
+                dayName: currentDayDetail.name,
+                dayIndex: dayIndex, // Adicionar o índice do dia
+                planId: selectedPlanId,
+                planName: currentPlanDetail ? currentPlanDetail.name : 'Plano Personalizado',
+                startTime: new Date().toISOString(),
+                exercises: currentDayDetail.exercises ? currentDayDetail.exercises.map(ex => ({
+                    name: ex.name,
+                    sets: ex.sets,
+                    reps: ex.reps,
+                    weight: ex.weight,
+                    results: []
+                })) : [],
                 completedExercises: []
             };
-            
-            // Inicializar os resultados para cada exercício
-            currentWorkout.exercises.forEach(exercise => {
-                exercise.results = [];
-                for (let i = 0; i < exercise.sets; i++) {
-                    exercise.results.push({
-                        repetitions: '',
-                        weight: ''
-                    });
-                }
-            });
             
             // Guardar o treino em progresso
             saveOngoingWorkout(currentWorkout);
             
-            // Ir para a página de treino
+            // Mostrar a página do treino
             showWorkoutPage();
         }
-
-        // ===== NOVAS FUNÇÕES PARA O FLUXO DE TREINO =====
         
+        // 2. Mostrar a página do treino
         function showWorkoutPage() {
             if (!currentWorkout) return;
             
@@ -3493,104 +4165,120 @@
             const container = document.getElementById('workoutExercisesList');
             container.innerHTML = '';
             
-            currentWorkout.exercises.forEach((exercise, index) => {
-                const isCompleted = currentWorkout.completedExercises.includes(index);
+            // Ordenar exercícios: não concluídos primeiro, depois os concluídos
+            const sortedExercises = [...currentWorkout.exercises].sort((a, b) => {
+                const aIndex = currentWorkout.exercises.indexOf(a);
+                const bIndex = currentWorkout.exercises.indexOf(b);
+                const aCompleted = currentWorkout.completedExercises.includes(aIndex);
+                const bCompleted = currentWorkout.completedExercises.includes(bIndex);
+                return aCompleted - bCompleted;
+            });
+            
+            sortedExercises.forEach((exercise, index) => {
+                const originalIndex = currentWorkout.exercises.indexOf(exercise);
+                const isCompleted = currentWorkout.completedExercises.includes(originalIndex);
                 const exerciseEl = document.createElement('div');
-                exerciseEl.className = 'workout-exercise-item';
+                exerciseEl.className = `workout-exercise-item ${isCompleted ? 'workout-exercise-completed' : ''}`;
                 exerciseEl.innerHTML = `
                     <div class="workout-exercise-info">
                         <div class='workout-exercise-name'>${exercise.name}</div>
                         <div class='workout-exercise-details'>${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}</div>
                     </div>
-                    <button class='workout-exercise-btn' onclick="startExercise(${index})" ${isCompleted ? 'disabled' : ''}>
-                        ${isCompleted ? 'Concluído' : 'Iniciar'}
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${isCompleted ? 
+                            `<button class='workout-exercise-options-btn' onclick="openExerciseCompletedModal(${originalIndex})"><i class="bi bi-three-dots"></i></button>` :
+                            `<button class='workout-exercise-btn' onclick="startExercise(${originalIndex})">Iniciar</button>`
+                        }
+                    </div>
                 `;
                 container.appendChild(exerciseEl);
             });
             
-            // Mostrar botão de terminar treino se todos os exercícios estiverem concluídos
+            // Mostrar botão de terminar treino sempre visível
             const finishBtn = document.getElementById('finishWorkoutBtn');
-            if (currentWorkout.completedExercises.length === currentWorkout.exercises.length) {
-                finishBtn.style.display = 'block';
-            } else {
-                finishBtn.style.display = 'none';
-            }
+            finishBtn.style.display = 'block';
+            finishBtn.disabled = false;
             
             showPage('workoutPage');
         }
         
         function closeWorkoutPage() {
-            if (isWorkoutSaved) {
-                // If we're in the middle of saving, don't allow exit
-                return;
+            // Verificar se há um treino em progresso
+            if (currentWorkout && currentWorkout.exercises.some((ex, index) => 
+                !currentWorkout.completedExercises.includes(index) && ex.results && ex.results.length > 0
+            )) {
+                // Mostrar modal de confirmação para sair do treino
+                document.getElementById('confirmExitModal').style.display = 'block';
+            } else {
+                // Não há progresso, pode sair sem confirmação
+                confirmExitWorkout();
             }
-            showConfirmExitModal();
         }
         
+        function closeConfirmExitModal() {
+            document.getElementById('confirmExitModal').style.display = 'none';
+        }
+        
+        function confirmExitWorkout() {
+            // Limpar o treino em progresso
+            clearOngoingWorkout();
+            currentWorkout = null;
+            closeConfirmExitModal();
+            showPage('mainPage');
+        }
+        
+        // 3. Iniciar um exercício específico
         function startExercise(exerciseIndex) {
-            if (!currentWorkout || !currentWorkout.exercises[exerciseIndex]) return;
+            if (!currentWorkout) return;
             
             currentExerciseIndex = exerciseIndex;
             const exercise = currentWorkout.exercises[exerciseIndex];
             
             document.getElementById('exerciseWorkoutTitle').textContent = exercise.name;
-            document.getElementById('exerciseWorkoutTarget').textContent = `Objetivo: ${exercise.sets}x${exercise.reps} ${exercise.weight ? `@ ${exercise.weight} kg` : ''}`;
+            document.getElementById('exerciseWorkoutTarget').textContent = `${exercise.sets} séries × ${exercise.reps} reps ${exercise.weight ? `@ ${exercise.weight} kg` : ''}`;
             
-            // Criar a grelha de séries
+            // Criar os inputs para as séries
             const seriesGrid = document.getElementById('seriesGrid');
             seriesGrid.innerHTML = '';
             
-            // Adicionar série de aquecimento se estiver ativa
-            const warmupCheckbox = document.getElementById('warmupCheckbox');
-            if (warmupCheckbox.checked) {
-                const warmupEl = document.createElement('div');
-                warmupEl.className = 'series-item';
-                warmupEl.innerHTML = `
+            for (let i = 0; i < exercise.sets; i++) {
+                const seriesItem = document.createElement('div');
+                seriesItem.className = 'series-item';
+                seriesItem.innerHTML = `
                     <div class="series-header">
-                        <div class="series-number">Aquecimento</div>
+                        <div class="series-number">Série ${i + 1}</div>
                     </div>
-                    <div class="series-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div class="series-inputs">
                         <div class="input-group">
                             <label class="input-label">Repetições</label>
-                            <input type="number" class="series-input" id="warmup-reps" placeholder="Reps" min="0">
+                            <input type="number" id="reps-${i}" class="series-input" min="0" value="${exercise.results[i] ? exercise.results[i].repetitions : ''}" placeholder="0">
                         </div>
                         <div class="input-group">
                             <label class="input-label">Peso (kg)</label>
-                            <input type="number" class="series-input" id="warmup-weight" placeholder="Peso" step="0.5" min="0">
+                            <input type="number" id="weight-${i}" class="series-input" step="0.5" min="0" value="${exercise.results[i] ? exercise.results[i].weight : ''}" placeholder="0">
                         </div>
                     </div>
                 `;
-                seriesGrid.appendChild(warmupEl);
+                seriesGrid.appendChild(seriesItem);
             }
             
-            exercise.results.forEach((result, index) => {
-                const seriesEl = document.createElement('div');
-                seriesEl.className = 'series-item';
-                seriesEl.innerHTML = `
-                    <div class="series-header">
-                        <div class="series-number">${index + 1}ª Série</div>
-                    </div>
-                    <div class="series-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div class="input-group">
-                            <label class="input-label">Repetições</label>
-                            <input type="number" class="series-input" id="reps-${index}" value="${result.repetitions}" placeholder="Reps" min="0" oninput="validateExerciseForm()">
-                        </div>
-                        <div class="input-group">
-                            <label class="input-label">Peso (kg)</label>
-                            <input type="number" class="series-input" id="weight-${index}" value="${result.weight}" placeholder="Peso" step="0.5" min="0" oninput="validateExerciseForm()">
-                        </div>
-                    </div>
-                `;
-                seriesGrid.appendChild(seriesEl);
-            });
+            // Configurar a série de aquecimento se existir
+            const warmupCheckbox = document.getElementById('warmupCheckbox');
+            const warmupRepsInput = document.getElementById('warmup-reps');
+            const warmupWeightInput = document.getElementById('warmup-weight');
             
-            // Reiniciar o temporizador
-            timerSeconds = 120;
-            updateTimerButton();
+            if (exercise.warmup) {
+                warmupCheckbox.checked = true;
+                if (warmupRepsInput) warmupRepsInput.value = exercise.warmup.repetitions || '';
+                if (warmupWeightInput) warmupWeightInput.value = exercise.warmup.weight || '';
+            } else {
+                warmupCheckbox.checked = false;
+                if (warmupRepsInput) warmupRepsInput.value = '';
+                if (warmupWeightInput) warmupWeightInput.value = '';
+            }
             
-            // Validar formulário inicialmente
-            validateExerciseForm();
+            // Mostrar botão de terminar exercício sempre clicável
+            document.getElementById('finishExerciseBtn').disabled = false;
             
             showPage('exerciseWorkoutPage');
         }
@@ -3599,29 +4287,50 @@
             showWorkoutPage();
         }
         
-        function validateExerciseForm() {
-            const exercise = currentWorkout.exercises[currentExerciseIndex];
-            let allFilled = true;
+        // 4. Alternar série de aquecimento
+        function toggleWarmupSet() {
+            const warmupCheckbox = document.getElementById('warmupCheckbox');
+            const seriesGrid = document.getElementById('seriesGrid');
             
-            for (let i = 0; i < exercise.results.length; i++) {
-                const reps = document.getElementById(`reps-${i}`).value;
-                const weight = document.getElementById(`weight-${i}`).value;
-                
-                if (!reps || !weight) {
-                    allFilled = false;
-                    break;
+            if (warmupCheckbox.checked) {
+                // Adicionar série de aquecimento
+                const warmupItem = document.createElement('div');
+                warmupItem.className = 'series-item';
+                warmupItem.innerHTML = `
+                    <div class="series-header">
+                        <div class="series-number">Aquecimento</div>
+                    </div>
+                    <div class="series-inputs">
+                        <div class="input-group">
+                            <label class="input-label">Repetições</label>
+                            <input type="number" id="warmup-reps" class="series-input" min="0" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Peso (kg)</label>
+                            <input type="number" id="warmup-weight" class="series-input" step="0.5" min="0" placeholder="0">
+                        </div>
+                    </div>
+                `;
+                seriesGrid.insertBefore(warmupItem, seriesGrid.firstChild);
+            } else {
+                // Remover série de aquecimento
+                const warmupItem = seriesGrid.querySelector('.series-item:first-child');
+                if (warmupItem && warmupItem.querySelector('#warmup-reps')) {
+                    seriesGrid.removeChild(warmupItem);
                 }
             }
-            
-            const finishBtn = document.getElementById('finishExerciseBtn');
-            finishBtn.disabled = !allFilled;
         }
         
+        // 5. Terminar exercício
         function finishExercise() {
+            if (!currentWorkout) return;
+            
             const exercise = currentWorkout.exercises[currentExerciseIndex];
+            const results = [];
             let allFilled = true;
             
-            for (let i = 0; i < exercise.results.length; i++) {
+            // Verificar se todas as séries estão preenchidas
+            for (let i = 0; i < exercise.sets; i++) {
                 const reps = document.getElementById(`reps-${i}`).value;
                 const weight = document.getElementById(`weight-${i}`).value;
                 
@@ -3632,17 +4341,35 @@
             }
             
             if (!allFilled) {
-                alert('Por favor, preencha todos os campos das séries antes de terminar o exercício.');
+                // Mostrar modal de confirmação para terminar com séries em falta
+                openConfirmFinishExerciseModal();
                 return;
             }
             
-            // Guardar os resultados inseridos
-            for (let i = 0; i < exercise.results.length; i++) {
-                exercise.results[i].repetitions = document.getElementById(`reps-${i}`).value;
-                exercise.results[i].weight = document.getElementById(`weight-${i}`).value;
-            }
+            // Se todas as séries estão preenchidas, prosseguir normalmente
+            actuallyFinishExercise();
+        }
+        
+        function openConfirmFinishExerciseModal() {
+            document.getElementById('confirmFinishExerciseModal').style.display = 'block';
+        }
+        
+        function closeConfirmFinishExerciseModal() {
+            document.getElementById('confirmFinishExerciseModal').style.display = 'none';
+        }
+        
+        function confirmFinishExercise() {
+            closeConfirmFinishExerciseModal();
+            actuallyFinishExercise(true); // true = preencher séries em falta com 0
+        }
+        
+        function actuallyFinishExercise(fillMissing = false) {
+            if (!currentWorkout) return;
             
-            // Guardar série de aquecimento se existir
+            const exercise = currentWorkout.exercises[currentExerciseIndex];
+            exercise.results = [];
+            
+            // Processar série de aquecimento se existir
             const warmupCheckbox = document.getElementById('warmupCheckbox');
             if (warmupCheckbox.checked) {
                 const warmupReps = document.getElementById('warmup-reps').value;
@@ -3656,38 +4383,126 @@
                 }
             }
             
-            // Adicionar à lista de exercícios concluídos SEM alterar a ordem
+            // Processar séries normais
+            for (let i = 0; i < exercise.sets; i++) {
+                let reps = document.getElementById(`reps-${i}`).value;
+                let weight = document.getElementById(`weight-${i}`).value;
+                
+                // Se estamos a preencher séries em falta
+                if (fillMissing && (!reps || !weight)) {
+                    reps = reps || '0';
+                    weight = weight || '0';
+                }
+                
+                if (reps && weight) {
+                    exercise.results.push({
+                        repetitions: reps,
+                        weight: weight
+                    });
+                }
+            }
+            
+            // Adicionar à lista de exercícios concluídos
             if (!currentWorkout.completedExercises.includes(currentExerciseIndex)) {
                 currentWorkout.completedExercises.push(currentExerciseIndex);
+                
+                // MODIFICAÇÃO SOLICITADA: Atualizar objetivos do plano baseado no desempenho
+                updatePlanTargetsBasedOnPerformance(currentWorkout, currentExerciseIndex);
             }
             
             // Guardar o treino em progresso
             saveOngoingWorkout(currentWorkout);
             
-            // Voltar para a página do treino
+            // MODIFICAÇÃO SOLICITADA: Mover o exercício para o fundo da lista
             showWorkoutPage();
+            
+            showToast('Exercício terminado!');
         }
         
-        // ===== Funções para o FLUXO DE TREINO =====
+        // 6. Terminar treino
         function finishWorkout() {
-            if (isWorkoutSaved) return;
-
             if (!currentWorkout) return;
-
+            
+            // Verificar se há exercícios não terminados
+            const missingExercises = currentWorkout.exercises.filter((exercise, index) => 
+                !currentWorkout.completedExercises.includes(index)
+            );
+            
+            if (missingExercises.length > 0) {
+                // Mostrar modal de confirmação para terminar com exercícios em falta
+                openConfirmFinishWorkoutModal(missingExercises);
+                return;
+            }
+            
+            // Se todos os exercícios estão terminados, prosseguir normalmente
+            actuallyFinishWorkout();
+        }
+        
+        function openConfirmFinishWorkoutModal(missingExercises) {
+            const list = document.getElementById('missingExercisesList');
+            list.innerHTML = '';
+            
+            missingExercises.forEach(exercise => {
+                const item = document.createElement('div');
+                item.className = 'missing-exercise-item';
+                item.textContent = exercise.name;
+                list.appendChild(item);
+            });
+            
+            document.getElementById('confirmFinishWorkoutModal').style.display = 'block';
+        }
+        
+        function closeConfirmFinishWorkoutModal() {
+            document.getElementById('confirmFinishWorkoutModal').style.display = 'none';
+        }
+        
+        function confirmFinishWorkout() {
+            closeConfirmFinishWorkoutModal();
+            
+            // Preencher exercícios não terminados com 0
+            currentWorkout.exercises.forEach((exercise, index) => {
+                if (!currentWorkout.completedExercises.includes(index)) {
+                    // Marcar como concluído
+                    currentWorkout.completedExercises.push(index);
+                    
+                    // Preencher séries não preenchidas com 0
+                    if (!exercise.results) {
+                        exercise.results = [];
+                    }
+                    
+                    for (let i = 0; i < exercise.sets; i++) {
+                        if (!exercise.results[i]) {
+                            exercise.results[i] = { repetitions: '0', weight: '0' };
+                        }
+                    }
+                }
+            });
+            
+            // Agora terminar o treino normalmente
+            actuallyFinishWorkout();
+        }
+        
+        function actuallyFinishWorkout() {
+            if (isWorkoutSaved) return;
+            
+            if (!currentWorkout) return;
+            
             isWorkoutSaved = true;
             const finishBtn = document.getElementById('finishWorkoutBtn');
             finishBtn.disabled = true;
             finishBtn.textContent = 'A guardar...';
-
+            
             try {
+                // Calcular duração
                 const endTime = new Date();
-                const durationMs = endTime - currentWorkout.startTime;
+                const durationMs = endTime - new Date(currentWorkout.startTime);
                 const minutes = Math.floor(durationMs / 60000);
                 const seconds = Math.floor((durationMs % 60000) / 1000);
                 
-                currentWorkout.endTime = endTime;
+                currentWorkout.endTime = endTime.toISOString();
                 currentWorkout.duration = `${minutes}m ${seconds}s`;
-
+                
+                // Guardar o treino no histórico
                 const workouts = loadWorkoutsData();
                 
                 // Verificação de duplicados corrigida
@@ -3695,23 +4510,20 @@
                     new Date(w.startTime).getTime() === new Date(currentWorkout.startTime).getTime() && 
                     w.planId === currentWorkout.planId
                 );
-
+                
                 if (!workoutExists) {
                     workouts.push(currentWorkout);
                     saveWorkoutsData(workouts);
                 }
-
+                
                 // Atualizar histórico de exercícios
                 updateExerciseHistory(currentWorkout);
-                
-                // ATUALIZAR OBJETIVOS DO PLANO BASEADO NO DESEMPENHO
-                updatePlanTargetsBasedOnPerformance(currentWorkout);
                 
                 // Guardar uma referência ao treino atual antes de limpar
                 const workoutForSummary = currentWorkout;
                 clearOngoingWorkout();
                 showWorkoutSummary(workoutForSummary);
-
+                
                 // Resetar o estado do botão após um breve delay
                 setTimeout(() => {
                     isWorkoutSaved = false;
@@ -3728,33 +4540,65 @@
             }
         }
         
+        // 7. Mostrar resumo do treino
         function showWorkoutSummary(workout) {
-            if (!workout) return;
-            
-            document.getElementById('summaryPlanName').textContent = workout.dayName;
+            document.getElementById('summaryPlanName').textContent = workout.planName;
             document.getElementById('summaryDuration').textContent = workout.duration;
-            
-            const container = document.getElementById('summaryExercisesList');
-            container.innerHTML = '';
-            
+
+            const exercisesList = document.getElementById('summaryExercisesList');
+            exercisesList.innerHTML = '';
+
             workout.exercises.forEach(exercise => {
                 const exerciseEl = document.createElement('div');
                 exerciseEl.className = 'summary-exercise';
-                
+
                 let setsHTML = '';
-                if (exercise.results) {
-                    setsHTML = exercise.results.map((set, index) => {
-                        return `S${index + 1}: ${set.repetitions}×${set.weight}kg`;
-                    }).join(', ');
-                }
+                let totalVolume = 0;
+                let maxWeight = 0;
                 
+                if (exercise.results && exercise.results.length > 0) {
+                    setsHTML = '<div style="margin-top: 8px;"><strong>Séries realizadas:</strong><br>';
+                    exercise.results.forEach((set, i) => {
+                        const reps = parseInt(set.repetitions) || 0;
+                        const weight = parseFloat(set.weight) || 0;
+                        const volume = reps * weight;
+                        totalVolume += volume;
+                        if (weight > maxWeight) maxWeight = weight;
+                        
+                        setsHTML += `Série ${i + 1}: ${reps} reps × ${weight} kg (${volume} kg)<br>`;
+                    });
+                    setsHTML += `</div><div style="margin-top: 4px;"><strong>Volume total:</strong> ${totalVolume} kg</div>`;
+                    if (maxWeight > 0) {
+                        setsHTML += `<div><strong>Peso máximo:</strong> ${maxWeight} kg</div>`;
+                    }
+                }
+
+                // Verificar se o objetivo foi superado
+                let objectiveHTML = '';
+                const targetReps = parseInt(exercise.reps) || 0;
+                const targetWeight = parseFloat(exercise.weight) || 0;
+                const targetVolume = targetReps * targetWeight;
+                
+                if (totalVolume > targetVolume && targetVolume > 0) {
+                    objectiveHTML = `<div style="margin-top: 8px; padding: 8px; background: rgba(46,125,50,0.2); border-radius: 8px; border-left: 4px solid var(--primary);">
+                        <strong>🎉 Objetivo superado!</strong><br>
+                        Objetivo anterior: ${targetReps} reps × ${targetWeight} kg = ${targetVolume} kg<br>
+                        Novo recorde: ${totalVolume} kg (+${totalVolume - targetVolume} kg)
+                    </div>`;
+                } else if (targetVolume > 0) {
+                    objectiveHTML = `<div style="margin-top: 8px;"><strong>Objetivo:</strong> ${targetReps} reps × ${targetWeight} kg = ${targetVolume} kg</div>`;
+                }
+
                 exerciseEl.innerHTML = `
-                    <div><strong>${exercise.name}</strong></div>
-                    <div>${setsHTML}</div>
+                    <div class="summary-exercise-name">${exercise.name}</div>
+                    <div class="summary-exercise-details">
+                        ${objectiveHTML}
+                        ${setsHTML}
+                    </div>
                 `;
-                container.appendChild(exerciseEl);
+                exercisesList.appendChild(exerciseEl);
             });
-            
+
             showPage('workoutSummaryPage');
         }
         
@@ -3762,249 +4606,63 @@
             showPage('mainPage');
         }
         
-        // CORREÇÃO: Garantir que a função updateExerciseHistory é chamada corretamente
-        function updateExerciseHistory(workout) {
-            const exercisesData = loadExercisesData();
-            
-            workout.exercises.forEach(exercise => {
-                if (!exercisesData[exercise.name]) {
-                    exercisesData[exercise.name] = { history: [] };
-                }
-                
-                // Calcular totais para este exercício neste treino
-                let totalReps = 0;
-                let totalVolume = 0;
-                let maxWeight = 0;
-                
-                if (exercise.results) {
-                    exercise.results.forEach(set => {
-                        const reps = parseInt(set.repetitions) || 0;
-                        const weight = parseFloat(set.weight) || 0;
-                        totalReps += reps;
-                        totalVolume += reps * weight;
-                        if (weight > maxWeight) maxWeight = weight;
-                    });
-                }
-                
-                const averageWeightPerRep = totalReps > 0 ? totalVolume / totalReps : 0;
-                
-                // Adicionar ao histórico
-                exercisesData[exercise.name].history.push({
-                    date: workout.startTime.toISOString().split('T')[0],
-                    startTime: workout.startTime,
-                    sets: exercise.results || [],
-                    totalReps: totalReps,
-                    totalVolume: totalVolume,
-                    averageWeightPerRep: averageWeightPerRep,
-                    maxWeight: maxWeight
-                });
-            });
-            
-            saveExercisesData(exercisesData);
-            
-            // Se estamos na página de detalhes do exercício, atualizar as estatísticas
-            if (currentPage === 'exerciseDetailPage' && currentExercise) {
-                const exerciseData = getExercisesData()[currentExercise] || { history: [] };
-                updateExerciseStats(exerciseData.history);
-            }
-        }
-
-        // ===== Funções para a Página de Treinos (Histórico) =====
-        function renderWorkouts() {
-            const q = (document.getElementById('workoutSearch').value || '').toLowerCase();
-            const list = document.getElementById('workoutsList');
-            let items = loadWorkoutsData();
-            
-            // Aplicar filtros
-            if (workoutFilters.dateStart) {
-                items = items.filter(w => new Date(w.startTime) >= new Date(workoutFilters.dateStart));
-            }
-            
-            if (workoutFilters.dateEnd) {
-                items = items.filter(w => new Date(w.startTime) <= new Date(workoutFilters.dateEnd));
-            }
-            
-            if (workoutFilters.plan) {
-                items = items.filter(w => w.planName === workoutFilters.plan);
-            }
-            
-            // Aplicar pesquisa por texto
-            if (q) {
-                items = items.filter(w => 
-                    w.planName.toLowerCase().includes(q) || 
-                    w.dayName.toLowerCase().includes(q) ||
-                    (w.exercises && w.exercises.some(e => e.name.toLowerCase().includes(q)))
-                );
-            }
-            
-            // Ordenar do mais recente para o mais antigo
-            items.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-            
-            if (items.length === 0) {
-                list.innerHTML = '<div class="card">Nenhum treino encontrado.</div>';
-                return;
-            }
-            
-            list.innerHTML = items.map(w => {
-                const date = new Date(w.startTime);
-                const formattedDate = date.toLocaleDateString('pt-PT');
-                const formattedTime = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-                
-                return `
-                <div class="workout-item-compact" onclick="openWorkoutDetailModal('${w.startTime}')">
-                    <div class="workout-header-compact">
-                        <div class="workout-title-compact">${w.dayName}</div>
-                        <div class="workout-date-compact">${formattedDate}<br>${formattedTime}</div>
-                    </div>
-                    <div class="workout-details-compact">
-                        <div class="workout-day-compact">${w.planName}</div>
-                        <div class="workout-duration-compact">${w.duration || 'N/A'}</div>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-        
-        function openWorkoutDetailModal(startTime) {
-            const workouts = loadWorkoutsData();
-            const workout = workouts.find(w => w.startTime === startTime);
-            if (!workout) return;
-            
-            currentWorkoutDetail = workout;
-            
-            const date = new Date(workout.startTime);
-            const formattedDate = date.toLocaleDateString('pt-PT');
-            const formattedTime = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-            
-            // Preencher informações do treino
-            const infoEl = document.getElementById('workoutDetailInfo');
-            infoEl.innerHTML = `
-                <div class="workout-detail-info-item">
-                    <span class="workout-detail-info-label">Plano:</span>
-                    <span class="workout-detail-info-value">${workout.planName}</span>
-                </div>
-                <div class="workout-detail-info-item">
-                    <span class="workout-detail-info-label">Dia:</span>
-                    <span class="workout-detail-info-value">${workout.dayName}</span>
-                </div>
-                <div class="workout-detail-info-item">
-                    <span class="workout-detail-info-label">Data:</span>
-                    <span class="workout-detail-info-value">${formattedDate}</span>
-                </div>
-                <div class="workout-detail-info-item">
-                    <span class="workout-detail-info-label">Hora:</span>
-                    <span class="workout-detail-info-value">${formattedTime}</span>
-                </div>
-                <div class="workout-detail-info-item">
-                    <span class="workout-detail-info-label">Duração:</span>
-                    <span class="workout-detail-info-value">${workout.duration || 'N/A'}</span>
-                </div>
-            `;
-            
-            // Preencher exercícios do treino
-            const exercisesEl = document.getElementById('workoutDetailExercises');
-            exercisesEl.innerHTML = '';
-            
-            if (workout.exercises && workout.exercises.length) {
-                workout.exercises.forEach(exercise => {
-                    const exerciseEl = document.createElement('div');
-                    exerciseEl.className = 'workout-detail-exercise';
-                    exerciseEl.innerHTML = `
-                        <div class="workout-detail-exercise-header" onclick="this.parentElement.classList.toggle('expanded')">
-                            <div class="workout-detail-exercise-name">${exercise.name}</div>
-                            <div>${exercise.sets} séries</div>
-                        </div>
-                        <div class="workout-detail-exercise-details">
-                            <div class="workout-detail-set">
-                                <div class="workout-detail-set-header">Série</div>
-                                <div class="workout-detail-set-header">Reps</div>
-                                <div class="workout-detail-set-header">Peso</div>
-                            </div>
-                            ${exercise.results.map((set, i) => `
-                                <div class="workout-detail-set">
-                                    <div>${i + 1}</div>
-                                    <div>${set.repetitions}</div>
-                                    <div>${set.weight} kg</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                    exercisesEl.appendChild(exerciseEl);
-                });
-            }
-            
-            document.getElementById('workoutDetailModal').style.display = 'block';
-        }
-        
-        function closeWorkoutDetailModal() {
-            document.getElementById('workoutDetailModal').style.display = 'none';
-        }
-        
-        function deleteWorkout() {
-            openDeleteWorkoutConfirmModal();
-        }
-
-        // ===== Funções para o Temporizador =====
+        // 8. Funções para o cronómetro
         function startTimer() {
             const timerBtn = document.getElementById('timerBtnSmall');
             
             if (timerInterval) {
-                // Parar o temporizador
+                // Parar o cronómetro
                 clearInterval(timerInterval);
                 timerInterval = null;
                 timerBtn.classList.remove('timer-active');
                 timerBtn.innerHTML = '<i class="bi bi-stopwatch"></i>';
-                return;
-            }
-            
-            // Iniciar o temporizador
-            timerInterval = setInterval(updateTimer, 1000);
-            timerBtn.classList.add('timer-active');
-            updateTimerButton();
-        }
-        
-        function updateTimer() {
-            if (timerSeconds > 0) {
-                timerSeconds--;
-                updateTimerButton();
+                timerSeconds = 120; // Reset para 2 minutos
             } else {
-                // Tempo acabou
-                clearInterval(timerInterval);
-                timerInterval = null;
-                document.getElementById('timerBtnSmall').classList.remove('timer-active');
-                document.getElementById('timerBtnSmall').innerHTML = '<i class="bi bi-stopwatch"></i>';
+                // Iniciar o cronómetro
+                timerBtn.classList.add('timer-active');
+                updateTimerDisplay();
                 
-                // Tocar som de alarme (se disponível)
-                try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbVtfdJivrJBhNjVgodDbq2EcBj+a2/LDci0FLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAoUXrHn6atVFApGn+DuwGwaBjKF0fDReSsFJHfH8N2QQAo');
-                    audio.play();
-                } catch (e) {
-                    console.log('Não foi possível tocar o som do alarme');
-                }
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        timerBtn.classList.remove('timer-active');
+                        timerBtn.innerHTML = '<i class="bi bi-stopwatch"></i>';
+                        timerSeconds = 120; // Reset para 2 minutos
+                        showToast('Tempo esgotado!');
+                    }
+                }, 1000);
             }
         }
         
-        function updateTimerButton() {
+        function updateTimerDisplay() {
             const timerBtn = document.getElementById('timerBtnSmall');
             const minutes = Math.floor(timerSeconds / 60);
             const seconds = timerSeconds % 60;
-            timerBtn.innerHTML = `<i class="bi bi-stopwatch"></i> ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            timerBtn.innerHTML = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
         }
         
-        function toggleWarmupSet() {
-            // Recarregar o exercício para mostrar/ocultar a série de aquecimento
-            if (currentExerciseIndex !== null) {
-                startExercise(currentExerciseIndex);
-            }
-        }
-        
+        // 9. Funções para informações do exercício durante o treino
         function showExerciseInfo() {
-            if (!currentExercise) return;
+            let exerciseName;
+            let exerciseData;
             
-            // Carregar informações do exercício
-            const exerciseData = getExercisesData()[currentExercise] || { notes: '' };
+            // Se estamos no contexto de treino (executando um exercício)
+            if (currentWorkout && currentExerciseIndex !== null) {
+                exerciseName = currentWorkout.exercises[currentExerciseIndex].name;
+                exerciseData = getExercisesData()[exerciseName] || { notes: '' };
+            } else if (currentExercise) {
+                // Se estamos na página de detalhes do exercício
+                exerciseName = currentExercise;
+                exerciseData = getExercisesData()[exerciseName] || { notes: '' };
+            } else {
+                return;
+            }
             
-            document.getElementById('exerciseInfoTitle').textContent = currentExercise;
+            document.getElementById('exerciseInfoTitle').textContent = exerciseName;
             document.getElementById('exerciseInfoContent').innerHTML = `
                 <p>${exerciseData.notes || 'Sem notas para este exercício.'}</p>
             `;
@@ -4015,427 +4673,136 @@
         function closeExerciseInfo() {
             document.getElementById('exerciseInfoModal').style.display = 'none';
         }
-
-        // ===== Funções para a Seleção de Planos =====
-        function openPlanSelection() {
-            const plans = loadPlansData();
-            const list = document.getElementById('planSelectionList');
-            
-            if (!plans.length) {
-                list.innerHTML = '<div class="card">Sem planos ainda.</div>';
-            } else {
-                list.innerHTML = plans.map(p => `
-                    <div class="plan-selection-item" onclick="selectPlan('${p.id}')">
-                        <div class="title">${p.name}</div>
-                        <div class="subtitle">${(p.days || []).length} dias</div>
-                    </div>
-                `).join('');
-            }
-            
-            document.getElementById('planSelectionModal').style.display = 'block';
-        }
         
-        function closePlanSelection() {
-            document.getElementById('planSelectionModal').style.display = 'none';
-        }
-        
-        function selectPlan(planId) {
-            selectedPlanId = planId;
-            localStorage.setItem(storageKeys.SELECTED_PLAN, planId);
-            document.getElementById('selectedPlanLabel').textContent = loadPlansData().find(p => p.id === planId)?.name || '—';
-            renderSelectedPlanDays();
-            closePlanSelection();
-            showToast('Plano selecionado!');
-        }
-
-        // ===== Funções para Filtros =====
-        function openExerciseFilterModal() {
-            // Preencher os checkboxes com os valores atuais
-            exerciseFilters.muscleGroups.forEach(muscle => {
-                const checkbox = document.getElementById(`filter${muscle}`);
-                if (checkbox) checkbox.checked = true;
-            });
-            
-            // Preencher a ordenação
-            document.getElementById('exerciseSort').value = exerciseFilters.sortBy;
-            
-            document.getElementById('exerciseFilterModal').style.display = 'block';
-        }
-        
-        function closeExerciseFilterModal() {
-            document.getElementById('exerciseFilterModal').style.display = 'none';
-        }
-        
-        function applyExerciseFilters() {
-            // Obter grupos musculares selecionados
-            const muscleGroups = [];
-            ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Other'].forEach(muscle => {
-                const checkbox = document.getElementById(`filter${muscle}`);
-                if (checkbox && checkbox.checked) {
-                    muscleGroups.push(checkbox.value);
-                }
-            });
-            
-            // Obter ordenação
-            const sortBy = document.getElementById('exerciseSort').value;
-            
-            // Aplicar filtros
-            exerciseFilters.muscleGroups = muscleGroups;
-            exerciseFilters.sortBy = sortBy;
-            
-            // Fechar modal e renderizar exercícios
-            closeExerciseFilterModal();
-            renderExercises();
-        }
-        
-        function clearExerciseFilters() {
-            exerciseFilters = {
-                muscleGroups: [],
-                sortBy: 'name'
-            };
-            
-            // Desmarcar todos os checkboxes
-            ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Other'].forEach(muscle => {
-                const checkbox = document.getElementById(`filter${muscle}`);
-                if (checkbox) checkbox.checked = false;
-            });
-            
-            // Definir ordenação padrão
-            document.getElementById('exerciseSort').value = 'name';
-            
-            // Renderizar exercícios
-            renderExercises();
-        }
-        
-        function openWorkoutFilterModal() {
-            // Preencher o dropdown de planos
-            const planSelect = document.getElementById('workoutFilterPlan');
-            const plans = loadPlansData();
-            
-            planSelect.innerHTML = '<option value="">Todos os planos</option>';
-            plans.forEach(plan => {
-                planSelect.innerHTML += `<option value="${plan.name}">${plan.name}</option>`;
-            });
-            
-            // Preencher com os valores atuais
-            if (workoutFilters.dateStart) {
-                document.getElementById('workoutFilterDateStart').value = workoutFilters.dateStart;
-            }
-            
-            if (workoutFilters.dateEnd) {
-                document.getElementById('workoutFilterDateEnd').value = workoutFilters.dateEnd;
-            }
-            
-            if (workoutFilters.plan) {
-                document.getElementById('workoutFilterPlan').value = workoutFilters.plan;
-            }
-            
-            document.getElementById('workoutFilterModal').style.display = 'block';
-        }
-        
-        function closeWorkoutFilterModal() {
-            document.getElementById('workoutFilterModal').style.display = 'none';
-        }
-        
-        function applyWorkoutFilters() {
-            // Obter valores dos filtros
-            const dateStart = document.getElementById('workoutFilterDateStart').value;
-            const dateEnd = document.getElementById('workoutFilterDateEnd').value;
-            const plan = document.getElementById('workoutFilterPlan').value;
-            
-            // Aplicar filtros
-            workoutFilters.dateStart = dateStart || null;
-            workoutFilters.dateEnd = dateEnd || null;
-            workoutFilters.plan = plan || null;
-            
-            // Fechar modal e renderizar treinos
-            closeWorkoutFilterModal();
-            renderWorkouts();
-        }
-        
-        function clearWorkoutFilters() {
-            workoutFilters = {
-                dateStart: null,
-                dateEnd: null,
-                plan: null
-            };
-            
-            // Limpar campos
-            document.getElementById('workoutFilterDateStart').value = '';
-            document.getElementById('workoutFilterDateEnd').value = '';
-            document.getElementById('workoutFilterPlan').value = '';
-            
-            // Renderizar treinos
-            renderWorkouts();
-        }
-
-        // ===== Funções para o Treino em Progresso =====
-        function saveOngoingWorkout(workout) {
-            localStorage.setItem(storageKeys.ONGOING_WORKOUT, JSON.stringify(workout));
-            ongoingWorkout = workout;
-            updateResumeWorkoutCard();
-        }
-        
-        function clearOngoingWorkout() {
-            localStorage.removeItem(storageKeys.ONGOING_WORKOUT);
-            ongoingWorkout = null;
-            currentWorkout = null;
-            updateResumeWorkoutCard();
-        }
-        
-        function updateResumeWorkoutCard() {
-            const card = document.getElementById('resumeWorkoutCard');
-            if (ongoingWorkout) {
-                card.style.display = 'flex';
-                document.getElementById('resumeWorkoutDetails').textContent = `${ongoingWorkout.dayName} - ${ongoingWorkout.completedExercises.length}/${ongoingWorkout.exercises.length} exercícios`;
-            } else {
-                card.style.display = 'none';
-            }
-        }
-        
-        function resumeWorkout() {
-            if (!ongoingWorkout) return;
-            
-            currentWorkout = ongoingWorkout;
-            showWorkoutPage();
-        }
-
-        // ===== Funções para a Página Home =====
-        function renderSelectedPlanDays() {
-            if (!selectedPlanId) {
-                document.getElementById('selectedPlanDays').innerHTML = '';
+        // 10. Funções para o modal de detalhes do exercício concluído
+        function openExerciseCompletedModal(exerciseIndex) {
+            if (!currentWorkout || !currentWorkout.exercises || !currentWorkout.exercises[exerciseIndex]) {
+                console.error('Exercício não encontrado no treino atual');
                 return;
             }
             
-            const plans = loadPlansData();
-            const plan = plans.find(p => p.id === selectedPlanId);
-            if (!plan) return;
+            const exercise = currentWorkout.exercises[exerciseIndex];
+            document.getElementById('completedExerciseTitle').textContent = exercise.name;
             
-            let html = '';
-            (plan.days || []).forEach((day, index) => {
-                html += `
-                <div class="day-card">
-                    <div class="day-number-box">
-                        <div>DIA</div>
-                        <div>${index + 1}</div>
-                    </div>
+            let content = `
+                <div class="exercise-completed-details">
+                    <h3 style="margin-bottom: 8px;">Séries realizadas:</h3>
                     <div>
-                        <h5>${day.name}</h5>
-                        <small>${day.exercises ? day.exercises.length : 0} exercícios</small>
-                    </div>
-                    <button class="start-workout-btn-home" onclick="startWorkoutFromHome('${plan.id}', ${index})">Iniciar Treino</button>
-                </div>`;
-            });
+            `;
             
-            document.getElementById('selectedPlanDays').innerHTML = html;
-        }
-        
-        function startWorkoutFromHome(planId, dayIndex) {
-            const plans = loadPlansData();
-            const plan = plans.find(p => p.id === planId);
-            if (!plan || !plan.days || !plan.days[dayIndex]) return;
-            
-            currentDayDetail = {
-                plan: plan,
-                dayIndex: dayIndex,
-                day: plan.days[dayIndex]
-            };
-            
-            startWorkout();
-        }
-
-        // ===== Funções de Utilidade =====
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            currentPage = pageId;
-            
-            // Atualizar navbar
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            const navItem = document.querySelector(`.nav-item:nth-child(${getNavIndex(pageId)})`);
-            if (navItem) navItem.classList.add('active');
-            
-            // Executar ações específicas de página
-            if (pageId === 'mainPage') {
-                renderSelectedPlanDays();
-                updateResumeWorkoutCard();
-            } else if (pageId === 'exercisesPage') {
-                renderExercises();
-            } else if (pageId === 'plansPage') {
-                renderPlans();
-            } else if (pageId === 'weightPage') {
-                initWeight();
-            } else if (pageId === 'workoutsPage') {
-                renderWorkouts();
+            if (exercise.results && exercise.results.length > 0) {
+                exercise.results.forEach((set, index) => {
+                    content += `<div class="exercise-completed-set">Série ${index+1}: ${set.repetitions} reps × ${set.weight} kg</div>`;
+                });
+            } else {
+                content += `<div class="exercise-completed-set">Nenhuma série registada</div>`;
             }
-        }
-        
-        function getNavIndex(pageId) {
-            switch(pageId) {
-                case 'mainPage': return 1;
-                case 'exercisesPage': return 2;
-                case 'plansPage': return 3;
-                case 'workoutsPage': return 4;
-                case 'weightPage': return 5;
-                default: return 1;
-            }
-        }
-        
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => { t.classList.remove('show'); }, 3000);
-        }
-        
-        // ===== Funções de Armazenamento =====
-        function loadWeightHistory() { return JSON.parse(localStorage.getItem(storageKeys.WEIGHT_HISTORY)) || []; }
-        function saveWeightHistory(hist) { localStorage.setItem(storageKeys.WEIGHT_HISTORY, JSON.stringify(hist)); }
-        function loadExercisesData() { return JSON.parse(localStorage.getItem(storageKeys.EXERCISES)) || {}; }
-        function saveExercisesData(data) { localStorage.setItem(storageKeys.EXERCISES, JSON.stringify(data)); }
-        function loadPlansData() { return JSON.parse(localStorage.getItem(storageKeys.PLANS)) || []; }
-        function savePlansData(data) { localStorage.setItem(storageKeys.PLANS, JSON.stringify(data)); }
-        function loadWorkoutsData() { return JSON.parse(localStorage.getItem(storageKeys.WORKOUTS)) || []; }
-        function saveWorkoutsData(data) { localStorage.setItem(storageKeys.WORKOUTS, JSON.stringify(data)); }
-        function loadExerciseMediaData() { return JSON.parse(localStorage.getItem(storageKeys.EXERCISE_MEDIA)) || {}; }
-        function saveExerciseMediaData(data) { localStorage.setItem(storageKeys.EXERCISE_MEDIA, JSON.stringify(data)); }
-
-        // ===== Inicialização =====
-        function init() {
-            // Carregar dados iniciais
-            selectedPlanId = localStorage.getItem(storageKeys.SELECTED_PLAN);
             
-            // Inicializar a página de peso
-            initWeight();
+            content += `</div>`;
             
-            // Inicializar a lista de exercícios
-            renderExercises();
-            
-            // Inicializar a lista de planos
-            renderPlans();
-            
-            // Inicializar a página home
-            if (selectedPlanId) {
+            // Verificar se existe um plano associado para mostrar objetivos
+            if (currentWorkout.planId) {
                 const plans = loadPlansData();
-                const plan = plans.find(p => p.id === selectedPlanId);
-                if (plan) {
-                    document.getElementById('selectedPlanLabel').textContent = plan.name;
+                const plan = plans.find(p => p.id === currentWorkout.planId);
+                
+                if (plan && currentWorkout.dayIndex !== undefined && plan.days && plan.days[currentWorkout.dayIndex]) {
+                    const day = plan.days[currentWorkout.dayIndex];
+                    const planExercise = day.exercises.find(e => e.name === exercise.name);
+                    
+                    if (planExercise) {
+                        const oldTarget = `${planExercise.sets}x${planExercise.reps} ${planExercise.weight}kg`;
+                        
+                        content += `<div class="exercise-completed-target">
+                            <strong>Objetivo:</strong> ${oldTarget}
+                        </div>`;
+                    }
                 }
             }
             
-            // Inicializar a lista de treinos
-            renderWorkouts();
-            
-            // Verificar se há um treino em progresso
-            updateResumeWorkoutCard();
-            
-            // Mostrar a página inicial
-            showPage('mainPage');
+            content += `</div>`;
+            document.getElementById('completedExerciseContent').innerHTML = content;
+            document.getElementById('exerciseCompletedModal').style.display = 'block';
         }
         
-        // Iniciar a aplicação
-        init();
-
-        // Função para mostrar o modal de confirmação personalizado
-        function showConfirmExitModal() {
-            document.getElementById('confirmExitModal').style.display = 'block';
+        function closeExerciseCompletedModal() {
+            document.getElementById('exerciseCompletedModal').style.display = 'none';
         }
-        // Função para fechar o modal de confirmação
-        function closeConfirmExitModal() {
-            document.getElementById('confirmExitModal').style.display = 'none';
-        }
-
-        function openDeleteWorkoutConfirmModal() {
-            document.getElementById('deleteWorkoutConfirmModal').style.display = 'block';
-        }
-
-        function closeDeleteWorkoutConfirmModal() {
-            document.getElementById('deleteWorkoutConfirmModal').style.display = 'none';
-        }
-
-        function confirmDeleteWorkout() {
-            if (!currentWorkoutDetail) return;
-            
-            // First, remove the workout from exercise history
-            const exercisesData = loadExercisesData();
-            
-            currentWorkoutDetail.exercises.forEach(exercise => {
-                if (exercisesData[exercise.name] && exercisesData[exercise.name].history) {
-                    // Filter out the history entries for this workout
-                    exercisesData[exercise.name].history = exercisesData[exercise.name].history.filter(
-                        h => new Date(h.startTime).getTime() !== new Date(currentWorkoutDetail.startTime).getTime()
-                    );
-                }
-            });
-            
-            saveExercisesData(exercisesData);
-            
-            // Then remove the workout from workouts data
-            const workouts = loadWorkoutsData();
-            const index = workouts.findIndex(w => w.startTime === currentWorkoutDetail.startTime);
-            if (index !== -1) {
-                workouts.splice(index, 1);
-                saveWorkoutsData(workouts);
-                showToast('Treino eliminado.');
-                closeDeleteWorkoutConfirmModal();
-                closeWorkoutDetailModal();
-                renderWorkouts();
-                
-                // If we're on the exercise detail page, refresh the chart and history
-                if (currentPage === 'exerciseDetailPage' && currentExercise) {
-                    loadExerciseDetail(currentExercise);
-                }
+        
+        // 11. Funções para atualizar objetivos do plano
+        function updatePlanTargetsBasedOnPerformance(workout, exerciseIndex) {
+            if (!workout || !workout.exercises || !workout.exercises[exerciseIndex]) {
+                console.error('Dados do workout ou exercício inválidos');
+                return false;
             }
-        }
-
-        // Atualização de Objetivos dos exercicios
-        function updatePlanTargetsBasedOnPerformance(workout) {
+            
             const plans = loadPlansData();
             const planIndex = plans.findIndex(p => p.id === workout.planId);
             
-            if (planIndex === -1) return false;
-            
+            if (planIndex === -1) {
+                console.error('Plano não encontrado');
+                return false;
+            }
+
             const plan = plans[planIndex];
+            
+            // Verificar se dayIndex existe e é válido
+            if (workout.dayIndex === undefined || workout.dayIndex === null) {
+                console.error('dayIndex não definido no workout');
+                return false;
+            }
+            
+            if (!plan.days || !plan.days[workout.dayIndex]) {
+                console.error('Dia não encontrado no plano');
+                return false;
+            }
+            
             const day = plan.days[workout.dayIndex];
             let updated = false;
             
-            // Para cada exercício no treino concluído
-            workout.exercises.forEach(workoutExercise => {
-                const planExercise = day.exercises.find(e => e.name === workoutExercise.name);
+            const workoutExercise = workout.exercises[exerciseIndex];
+            
+            // Verificar se o dia tem exercícios
+            if (!day.exercises) {
+                console.error('Dia não tem exercícios definidos');
+                return false;
+            }
+            
+            const planExercise = day.exercises.find(e => e.name === workoutExercise.name);
+            
+            if (!planExercise || !workoutExercise.results) {
+                return false;
+            }
+
+            const planReps = parseInt(planExercise.reps) || 0;
+            const planWeight = parseFloat(planExercise.weight) || 0;
+            const planTotalLoad = planReps * planWeight;
+            
+            // Encontrar a série com a maior carga total
+            let bestTotalLoad = 0;
+            let bestReps = 0;
+            let bestWeight = 0;
+            
+            workoutExercise.results.forEach(set => {
+                const reps = parseInt(set.repetitions) || 0;
+                const weight = parseFloat(set.weight) || 0;
+                const totalLoad = reps * weight;
                 
-                if (!planExercise || !workoutExercise.results) return;
-                
-                const planReps = parseInt(planExercise.reps) || 0;
-                const planWeight = parseFloat(planExercise.weight) || 0;
-                const planTotalLoad = planReps * planWeight;
-                
-                // Encontrar a série com a maior carga total
-                let bestTotalLoad = 0;
-                let bestReps = 0;
-                let bestWeight = 0;
-                
-                workoutExercise.results.forEach(set => {
-                    const reps = parseInt(set.repetitions) || 0;
-                    const weight = parseFloat(set.weight) || 0;
-                    const totalLoad = reps * weight;
-                    
-                    if (totalLoad > bestTotalLoad) {
-                        bestTotalLoad = totalLoad;
-                        bestReps = reps;
-                        bestWeight = weight;
-                    }
-                });
-                
-                // Verificar se a carga total foi melhor e atualizar se necessário
-                if (bestTotalLoad > planTotalLoad) {
-                    // Atualizar ambos - repetições e peso - para os valores da melhor série
-                    planExercise.reps = bestReps.toString();
-                    planExercise.weight = bestWeight.toString();
-                    
-                    showToast(`Objetivo atualizado: ${workoutExercise.name} - ${bestReps} reps × ${bestWeight} kg`);
-                    updated = true;
+                if (totalLoad > bestTotalLoad) {
+                    bestTotalLoad = totalLoad;
+                    bestReps = reps;
+                    bestWeight = weight;
                 }
             });
+            
+            // Verificar se a carga total foi melhor e atualizar se necessário
+            if (bestTotalLoad > planTotalLoad) {
+                // Atualizar ambos - repetições e peso - para os valores da melhor série
+                planExercise.reps = bestReps.toString();
+                planExercise.weight = bestWeight.toString();
+                
+                showToast(`Objetivo atualizado: ${workoutExercise.name} - ${bestReps} reps × ${bestWeight} kg`);
+                updated = true;
+            }
             
             if (updated) {
                 plans[planIndex] = plan;
@@ -4451,24 +4818,195 @@
             
             return false;
         }
-
-        // Adicionar esta função auxiliar para calcular a carga total
-        function calculateTotalLoad(reps, weight) {
-            return (parseInt(reps) || 0) * (parseFloat(weight) || 0);
+        
+        // ===== Funções para o Histórico de Exercícios =====
+        function updateExerciseHistory(workout) {
+            const data = loadExercisesData();
+            
+            workout.exercises.forEach(exercise => {
+                if (!exercise.results || exercise.results.length === 0) return;
+                
+                if (!data[exercise.name]) {
+                    data[exercise.name] = { notes: '', history: [] };
+                }
+                
+                // Calcular estatísticas para este exercício neste treino
+                let totalReps = 0;
+                let totalVolume = 0;
+                let maxWeight = 0;
+                let weightCount = 0;
+                let totalWeight = 0;
+                
+                exercise.results.forEach(set => {
+                    const reps = parseInt(set.repetitions) || 0;
+                    const weight = parseFloat(set.weight) || 0;
+                    
+                    totalReps += reps;
+                    totalVolume += reps * weight;
+                    
+                    if (weight > maxWeight) {
+                        maxWeight = weight;
+                    }
+                    
+                    if (weight > 0) {
+                        totalWeight += weight;
+                        weightCount++;
+                    }
+                });
+                
+                const averageWeightPerRep = totalReps > 0 ? totalVolume / totalReps : 0;
+                const averageWeight = weightCount > 0 ? totalWeight / weightCount : 0;
+                
+                // Adicionar ao histórico
+                data[exercise.name].history.push({
+                    startTime: workout.startTime,
+                    endTime: workout.endTime,
+                    sets: exercise.results,
+                    totalReps,
+                    totalVolume,
+                    maxWeight,
+                    averageWeight,
+                    averageWeightPerRep
+                });
+            });
+            
+            saveExercisesData(data);
         }
+        
+        // ===== Funções para Gerir Treino em Progresso =====
+        function saveOngoingWorkout(workout) {
+            try {
+                localStorage.setItem(storageKeys.ONGOING_WORKOUT, JSON.stringify(workout));
+                ongoingWorkout = workout;
+                updateResumeWorkoutCard();
+            } catch (e) {
+                console.error('Erro ao guardar treino em progresso:', e);
+            }
+        }
+        
+        function clearOngoingWorkout() {
+            localStorage.removeItem(storageKeys.ONGOING_WORKOUT);
+            ongoingWorkout = null;
+            currentWorkout = null;
+            
+            // Atualizar o card de retomar treino na página principal
+            updateResumeWorkoutCard();
+        }
+        
+        function updateResumeWorkoutCard() {
+            const resumeCard = document.getElementById('resumeWorkoutCard');
+            const resumeDetails = document.getElementById('resumeWorkoutDetails');
+            
+            if (ongoingWorkout) {
+                const completedCount = ongoingWorkout.completedExercises.length;
+                const totalCount = ongoingWorkout.exercises.length;
+                
+                resumeDetails.textContent = `${completedCount}/${totalCount} exercícios concluídos`;
+                resumeCard.style.display = 'flex';
+            } else {
+                resumeCard.style.display = 'none';
+            }
+        }
+        
+        function resumeWorkout() {
+            if (!ongoingWorkout) return;
+            
+            currentWorkout = ongoingWorkout;
+            showWorkoutPage();
+        }
+        
+        // ===== Funções Auxiliares =====
+        function showPage(pageId){ 
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); 
+            document.getElementById(pageId).classList.add('active'); 
+            currentPage = pageId;
+            
+            // Atualizar a navbar
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const navMap = {
+                'mainPage': 0,
+                'exercisesPage': 1,
+                'plansPage': 2,
+                'workoutsPage': 3,
+                'weightPage': 4
+            };
+            if (navMap[pageId] !== undefined) {
+                document.querySelectorAll('.nav-item')[navMap[pageId]].classList.add('active');
+            }
+            
+            // Atualizar conteúdo específico da página
+            if (pageId === 'mainPage') {
+                updateResumeWorkoutCard();
+            } else if (pageId === 'exercisesPage') {
+                renderExercises();
+            } else if (pageId === 'plansPage') {
+                renderPlans();
+            } else if (pageId === 'workoutsPage') {
+                renderWorkouts();
+            } else if (pageId === 'weightPage') {
+                initWeight();
+            }
+        }
+        
+        function showToast(msg){ 
+            const t=document.getElementById('toast'); 
+            t.textContent=msg; 
+            t.classList.add('show'); 
+            setTimeout(()=>{ 
+                t.classList.remove('show'); 
+                // Mover o toast para fora do ecrã após a animação
+                setTimeout(() => {
+                    t.style.top = '-100px';
+                }, 300);
+            }, 3000); 
+        }
+        
+        // Funções de armazenamento
+        function loadWeightHistory(){ return JSON.parse(localStorage.getItem(storageKeys.WEIGHT_HISTORY))||[]; }
+        function saveWeightHistory(h){ localStorage.setItem(storageKeys.WEIGHT_HISTORY,JSON.stringify(h)); }
+        function loadExercisesData(){ return JSON.parse(localStorage.getItem(storageKeys.EXERCISES))||{}; }
+        function saveExercisesData(d){ localStorage.setItem(storageKeys.EXERCISES,JSON.stringify(d)); }
+        function loadPlansData(){ return JSON.parse(localStorage.getItem(storageKeys.PLANS))||[]; }
+        function savePlansData(p){ localStorage.setItem(storageKeys.PLANS,JSON.stringify(p)); }
+        function loadWorkoutsData(){ return JSON.parse(localStorage.getItem(storageKeys.WORKOUTS))||[]; }
+        function saveWorkoutsData(w){ localStorage.setItem(storageKeys.WORKOUTS,JSON.stringify(w)); }
 
-        // Função confirmar saída do treino
-        function confirmExitWorkout() {
-            closeConfirmExitModal();
-            clearOngoingWorkout();
+        // Inicialização
+        function init(){
+            // Inicializar peso
+            initWeight();
+            
+            // Carregar plano selecionado
+            selectedPlanId = localStorage.getItem(storageKeys.SELECTED_PLAN);
+            if(selectedPlanId){
+                const plans=loadPlansData();
+                const plan=plans.find(p=>p.id===selectedPlanId);
+                if(plan){
+                    document.getElementById('selectedPlanLabel').textContent=plan.name;
+                    
+                    // Garantir que os dias existem
+                    if (!plan.days) {
+                        plan.days = [];
+                    }
+                    
+                    renderSelectedPlanDays(plan.days);
+                }
+            }
+            
+            // Renderizar páginas iniciais
+            renderExercises();
+            renderPlans();
+            renderWorkouts();
+            
+            // Atualizar card de retomar treino
+            updateResumeWorkoutCard();
+            
+            // Mostrar página inicial
             showPage('mainPage');
         }
 
-        // Substituir a função closeWorkoutPage existente por esta:
-        function closeWorkoutPage() {
-            showConfirmExitModal();
-        }
+        // Iniciar a aplicação
+        init();
     </script>
 </body>
 </html>
-
