@@ -1,7 +1,8 @@
 {
-  "name": "Gym App",
-  "short_name": "Gym",
-  "start_url": ".",
+  "name": "Gym PWA",
+  "short_name": "GymPWA",
+  "description": "Aplicativo para acompanhamento de treinos na academia",
+  "start_url": "/index07.html",
   "display": "standalone",
   "background_color": "#0b1220",
   "theme_color": "#111827",
@@ -17,5 +18,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "categories": ["health", "fitness", "lifestyle"]
 }
