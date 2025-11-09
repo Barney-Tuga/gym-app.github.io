@@ -1904,6 +1904,7 @@
             <div class="card" style="margin-top:14px;">
                 <h3>Detalhes dos Treinos</h3>
                 <div id="exerciseHistoryList" class="exercise-history-list"></div>
+                <div id="exerciseHistoryDebug" style="margin-top:12px; background: rgba(0,0,0,0.06); padding:8px; border-radius:8px; font-size:0.85rem; white-space:pre-wrap; overflow:auto; max-height:200px;"></div>
             </div>
         </div>
 
@@ -2075,6 +2076,7 @@
                     <div style="display:grid; gap:8px; margin-top:12px;">
                         <button class="settings-danger-btn" onclick="clearAllExercises()">Apagar Todos os Exercícios</button>
                         <button class="settings-danger-btn" onclick="clearExercisesHistory()">Apagar Histórico de Exercícios</button>
+                        <button id="exerciseHistoryMigrateBtn" class="btn ghost" onclick="openExerciseMigrationConfirm()">Reconstruir histórico a partir dos treinos</button>
                     </div>
                 </div>
             </div>
@@ -2097,6 +2099,18 @@
                         <button class="btn ghost" onclick="importData()">Importar Dados</button>
                         <button class="btn ghost" onclick="resetAllData()">Repor Todos os Dados</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Confirmar migração de histórico de exercícios -->
+        <div id="exerciseHistoryMigrateConfirmModal" class="weight-modal">
+            <div class="weight-modal-content">
+                <h2 class="modal-title">Confirmar Migração</h2>
+                <p>Tem a certeza que deseja reconstruir o histórico de exercícios a partir dos treinos guardados? Esta ação pode adicionar várias entradas e não é reversível automaticamente.</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeExerciseMigrationConfirm()">Cancelar</button>
+                    <button class="modal-btn btn-save" onclick="confirmExerciseHistoryMigration()">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -3231,7 +3245,34 @@
         }
         
         function loadExerciseDetail(name){
-            const data = getExercisesData()[name] || { notes: '', history: [] };
+            const allExercisesData = getExercisesData();
+            // Try exact key first, then normalized key
+            let data = allExercisesData[name] || null;
+            if (!data) {
+                const norm = normalizeName(name);
+                for (const k in allExercisesData) {
+                    if (normalizeName(k) === norm) {
+                        data = allExercisesData[k];
+                        console.debug('loadExerciseDetail mapped', name, 'to stored key', k);
+                        break;
+                    }
+                }
+            }
+            data = data || { notes: '', history: [] };
+            console.debug('loadExerciseDetail for', name, 'data (raw):', data);
+
+            // If there's no per-exercise history stored, try to reconstruct it from global workouts
+            if ((!data.history || data.history.length === 0)) {
+                console.debug('No per-exercise history found for', name, '- attempting to reconstruct from workouts');
+                const reconstructed = buildExerciseHistoryFromWorkouts(name);
+                if (reconstructed && reconstructed.length > 0) {
+                    data.history = reconstructed;
+                    allExercisesData[name] = allExercisesData[name] || { notes: '', history: [] };
+                    allExercisesData[name].history = reconstructed;
+                    saveExercisesData(allExercisesData);
+                    console.log('Reconstructed and saved exercise history for', name);
+                }
+            }
             document.getElementById('exerciseNotes').value = data.notes || '';
             
             updateExerciseStats(data.history || []);
@@ -3242,9 +3283,17 @@
             
             if (data.history && data.history.length > 0) {
                 // Preparar dados para o gráfico
-                const labels = data.history.map(h => new Date(h.startTime).toLocaleDateString('pt-PT'));
-                const avgData = data.history.map(h => h.averageWeightPerRep || 0);
-                const maxData = data.history.map(h => h.maxWeight || 0);
+                const labels = data.history.map(h => {
+                    try { return new Date(h.startTime || h.date).toLocaleDateString('pt-PT'); } catch(e) { return '—'; }
+                });
+                const avgData = data.history.map(h => {
+                    const v = Number(h.averageWeightPerRep);
+                    return isFinite(v) ? v : 0;
+                });
+                const maxData = data.history.map(h => {
+                    const v = Number(h.maxWeight);
+                    return isFinite(v) ? v : 0;
+                });
                 
                 exerciseChart = new Chart(ctx, { 
                     type: 'line', 
@@ -3348,6 +3397,202 @@
             
             // Carregar o histórico de exercícios
             loadExerciseHistoryList(data.history || []);
+
+            // Mostrar debug minimal na UI para verificar se os dados chegaram
+            try {
+                const dbg = document.getElementById('exerciseHistoryDebug');
+                if (dbg) {
+                    const count = (data.history && data.history.length) ? data.history.length : 0;
+                    let last = null;
+                    if (count > 0) last = data.history[data.history.length - 1];
+                    dbg.textContent = `Histórico entries: ${count}\nÚltima entrada:\n` + (last ? JSON.stringify(last, null, 2) : '—');
+                }
+            } catch (e) { console.warn('debug panel update failed', e); }
+
+            // Add a migration button to the debug panel to force-rebuild histories from workouts
+            try {
+                const dbg = document.getElementById('exerciseHistoryDebug');
+                if (dbg) {
+                    const btnId = 'exerciseHistoryMigrateBtn';
+                    if (!document.getElementById(btnId)) {
+                        const btn = document.createElement('button');
+                        btn.id = btnId;
+                        btn.textContent = 'Forçar reconstrução de histórico a partir dos treinos';
+                        btn.style.marginTop = '8px';
+                        btn.className = 'btn ghost';
+                        btn.onclick = function(){
+                            const res = migrateAllWorkoutsToExerciseHistory();
+                            showToast('Migração concluída. Atualize a página de detalhe.');
+                            if (currentPage === 'exerciseDetailPage' && currentExercise) loadExerciseDetail(currentExercise);
+                        };
+                        dbg.parentNode.appendChild(btn);
+                    }
+                }
+            } catch (e) { console.warn('adding migrate button failed', e); }
+        }
+
+        // Reconstruct per-exercise history by scanning the global workouts list
+        function buildExerciseHistoryFromWorkouts(exerciseName) {
+            try {
+                const workouts = loadWorkoutsData() || [];
+                const history = [];
+
+                const targetNorm = normalizeName(exerciseName);
+                workouts.forEach(w => {
+                    if (!w.exercises || !Array.isArray(w.exercises)) return;
+                    w.exercises.forEach(ex => {
+                        if (!ex || !ex.name) return;
+                        // compare normalized names
+                        if (normalizeName(ex.name) !== targetNorm) return;
+
+                        const setsArray = ex.sets || ex.results || [];
+                        let totalReps = 0;
+                        let totalVolume = 0;
+                        let maxWeight = 0;
+                        let weightCount = 0;
+                        let totalWeight = 0;
+
+                        setsArray.forEach(s => {
+                            const reps = parseInt(s.repetitions) || 0;
+                            const weight = parseFloat(s.weight) || 0;
+                            totalReps += reps;
+                            totalVolume += reps * weight;
+                            if (weight > maxWeight) maxWeight = weight;
+                            if (weight > 0) { totalWeight += weight; weightCount++; }
+                        });
+
+                        const averageWeight = weightCount > 0 ? (totalWeight / weightCount) : 0;
+                        const averageWeightPerRep = totalReps > 0 ? (totalVolume / totalReps) : 0;
+
+                        history.push({
+                            startTime: w.startTime,
+                            endTime: w.endTime,
+                            sets: setsArray,
+                            totalReps: totalReps,
+                            totalVolume: totalVolume,
+                            maxWeight: maxWeight,
+                            averageWeight: averageWeight,
+                            averageWeightPerRep: averageWeightPerRep
+                        });
+                    });
+                });
+
+                // Sort by date asc (older first)
+                history.sort((a,b) => new Date(a.startTime) - new Date(b.startTime));
+                return history;
+            } catch (e) {
+                console.error('buildExerciseHistoryFromWorkouts error', e);
+                return [];
+            }
+        }
+
+        // Migrate all workouts -> exercises.history (avoids duplicates by startTime)
+        function migrateAllWorkoutsToExerciseHistory() {
+            try {
+                const workouts = loadWorkoutsData() || [];
+                const data = loadExercisesData() || {};
+                let addedCount = 0;
+
+                workouts.forEach(w => {
+                    if (!w.exercises || !Array.isArray(w.exercises)) return;
+                    w.exercises.forEach(ex => {
+                        if (!ex || !ex.name) return;
+                        const k = normalizeName(ex.name);
+                        if (!data[k]) data[k] = { notes: '', history: [] };
+
+                        // skip if history already has entry with same startTime
+                        const exists = (data[k].history || []).some(h => h.startTime === w.startTime);
+                        if (exists) return;
+
+                        const setsArray = ex.sets || ex.results || [];
+                        let totalReps = 0;
+                        let totalVolume = 0;
+                        let maxWeight = 0;
+                        let weightCount = 0;
+                        let totalWeight = 0;
+
+                        setsArray.forEach(s => {
+                            const reps = parseInt(s.repetitions) || 0;
+                            const weight = parseFloat(s.weight) || 0;
+                            totalReps += reps;
+                            totalVolume += reps * weight;
+                            if (weight > maxWeight) maxWeight = weight;
+                            if (weight > 0) { totalWeight += weight; weightCount++; }
+                        });
+
+                        const averageWeight = weightCount > 0 ? (totalWeight / weightCount) : 0;
+                        const averageWeightPerRep = totalReps > 0 ? (totalVolume / totalReps) : 0;
+
+                        const historyEntry = {
+                            startTime: w.startTime,
+                            endTime: w.endTime,
+                            sets: setsArray,
+                            totalReps,
+                            totalVolume,
+                            maxWeight,
+                            averageWeight,
+                            averageWeightPerRep
+                        };
+
+                        data[k].history = data[k].history || [];
+                        data[k].history.push(historyEntry);
+                        addedCount++;
+                    });
+                });
+
+                if (addedCount > 0) saveExercisesData(data);
+                console.log('migrateAllWorkoutsToExerciseHistory added entries:', addedCount);
+                return { added: addedCount };
+            } catch (e) {
+                console.error('migrateAllWorkoutsToExerciseHistory error', e);
+                return { added: 0, error: e };
+            }
+        }
+
+        // Wrapper used by settings button to migrate and notify user
+        function migrateWorkoutsFromSettings(){
+            try{
+                const res = migrateAllWorkoutsToExerciseHistory();
+                if(res && res.added !== undefined){
+                    showToast(`Migração concluída: ${res.added} entradas adicionadas.`);
+                } else {
+                    showToast('Migração concluída.');
+                }
+                // If currently viewing an exercise detail, reload it to reflect changes
+                if(currentPage==='exerciseDetailPage' && currentExercise){
+                    loadExerciseDetail(currentExercise);
+                }
+            }catch(e){
+                console.error('migrateWorkoutsFromSettings error', e);
+                showToast('Erro na migração. Ver consola.');
+            }
+        }
+
+        function openExerciseMigrationConfirm(){
+            document.getElementById('exerciseHistoryMigrateConfirmModal').style.display = 'block';
+        }
+
+        function closeExerciseMigrationConfirm(){
+            document.getElementById('exerciseHistoryMigrateConfirmModal').style.display = 'none';
+        }
+
+        function confirmExerciseHistoryMigration(){
+            try{
+                document.getElementById('exerciseHistoryMigrateConfirmModal').style.display = 'none';
+                // call wrapper which shows toast and reloads detail
+                migrateWorkoutsFromSettings();
+            }catch(e){
+                console.error('confirmExerciseHistoryMigration error', e);
+                showToast('Erro ao iniciar migração. Veja a consola.');
+            }
+        }
+
+        // Normalize exercise names so we store/find under a consistent key
+        function normalizeName(name){
+            if (!name) return '';
+            try{
+                return name.toString().trim().toLowerCase();
+            }catch(e){ return name; }
         }
 
         function updateExerciseStats(history) {
@@ -3424,6 +3669,7 @@
         // Função para carregar o histórico de exercícios na página de detalhes
         function loadExerciseHistoryList(history) {
             const container = document.getElementById('exerciseHistoryList');
+            console.debug('loadExerciseHistoryList, history:', history);
             container.innerHTML = '';
             
             if (!history || history.length === 0) {
@@ -5129,6 +5375,72 @@
             document.getElementById('confirmFinishWorkoutModal').style.display = 'none';
         }
         
+        // Atualiza o histórico por exercício com o formato usado no index06 (compatível com loadExerciseDetail)
+        function updateExerciseHistory(workout) {
+            try {
+                const data = loadExercisesData() || {};
+
+                // helper to normalize keys
+                function keyFor(name){ return normalizeName(name); }
+
+                (workout.exercises || []).forEach(exercise => {
+                    if (!exercise || !exercise.name) return;
+
+                    const k = keyFor(exercise.name);
+                    if (!data[k]) {
+                        data[k] = { notes: '', history: [] };
+                    }
+
+                    // Compatibilidade: algumas versões usam 'results', outras 'sets'
+                    const setsArray = exercise.results || exercise.sets || [];
+
+                    let totalReps = 0;
+                    let totalVolume = 0;
+                    let maxWeight = 0;
+                    let weightCount = 0;
+                    let totalWeight = 0;
+
+                    setsArray.forEach(s => {
+                        const reps = parseInt(s.repetitions) || 0;
+                        const weight = parseFloat(s.weight) || 0;
+                        totalReps += reps;
+                        totalVolume += reps * weight;
+                        if (weight > maxWeight) maxWeight = weight;
+                        if (weight > 0) { totalWeight += weight; weightCount++; }
+                    });
+
+                    const averageWeight = weightCount > 0 ? (totalWeight / weightCount) : 0;
+                    const averageWeightPerRep = totalReps > 0 ? (totalVolume / totalReps) : 0;
+
+                    const historyEntry = {
+                        startTime: workout.startTime,
+                        endTime: workout.endTime,
+                        sets: setsArray,
+                        totalReps: totalReps,
+                        totalVolume: totalVolume,
+                        maxWeight: maxWeight,
+                        averageWeight: averageWeight,
+                        averageWeightPerRep: averageWeightPerRep
+                    };
+
+                    console.debug('updateExerciseHistory - adding', exercise.name, { totalReps, totalVolume, maxWeight, averageWeightPerRep, setsCount: setsArray.length });
+
+                    data[k].history = data[k].history || [];
+                    data[k].history.push(historyEntry);
+                });
+
+                saveExercisesData(data);
+                console.log('updateExerciseHistory: exercises data saved', data);
+
+                // If the user is viewing an exercise detail, reload it to reflect changes
+                if (currentPage === 'exerciseDetailPage' && currentExercise) {
+                    try { loadExerciseDetail(currentExercise); } catch (e) { console.warn('reload detail failed', e); }
+                }
+            } catch (e) {
+                console.error('updateExerciseHistory error', e);
+            }
+        }
+
         function confirmFinishWorkout() {
             // Preencher exercícios em falta com séries vazias
             currentWorkout.exercises.forEach((exercise, index) => {
@@ -5190,12 +5502,19 @@
                     exercise.averageWeightPerRep = weightCount > 0 ? totalWeight / weightCount : 0;
                 }
             });
-            
+
+            // Atualizar histórico por exercício (usa função reutilizável)
+            try {
+                updateExerciseHistory(currentWorkout);
+            } catch (e) {
+                console.error('Erro ao atualizar histórico por exercício:', e);
+            }
+
             // Adicionar ao histórico de treinos
             const workouts = loadWorkoutsData();
             workouts.push(currentWorkout);
             saveWorkoutsData(workouts);
-            
+
             console.log('Treino guardado no histórico:', currentWorkout);
             
             // Limpar o treino em progresso
@@ -5850,6 +6169,8 @@
             renderPlans(); 
             renderWorkouts(); 
             
+            
+
             // Mostrar página inicial
             showPage('mainPage'); 
         }
